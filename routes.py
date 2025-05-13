@@ -212,6 +212,9 @@ def admin_tournaments():
 
 @app.route('/admin/tournament/<int:tournament_id>')
 @login_required
+def get_all_players():
+    return Player.query.order_by(Player.name).all()
+
 def admin_tournament_detail(tournament_id):
     # Check if user is admin
     if not hasattr(current_user, 'username'):

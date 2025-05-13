@@ -525,8 +525,10 @@
                         <label for="player_id" class="form-label">Select Player</label>
                         <select class="form-select" id="player_id" name="player_id" required>
                             <option value="">-- Select Player --</option>
-                            {% for player in get_all_players() if player.id not in tournament_players|map(attribute='player_id')|list %}
-                                <option value="{{ player.id }}">{{ player.name }} ({{ player.access_code }})</option>
+                            {% for player in get_all_players() %}
+                                {% if player.id not in tournament_players|map(attribute='player_id')|list %}
+                                    <option value="{{ player.id }}">{{ player.name }} ({{ player.access_code }})</option>
+                                {% endif %}
                             {% endfor %}
                         </select>
                     </div>
