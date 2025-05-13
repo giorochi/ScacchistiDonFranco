@@ -98,24 +98,21 @@ def player_dashboard():
     draws = 0
 
     for match in past_matches:
-        if match.result == MatchResult.WHITE_WIN and match.white_player_id == current_user.id:
-            wins += 1
-        elif match.result == MatchResult.BLACK_WIN and match.black_player_id == current_user.id:
-            wins += 1
-        elif match.result == MatchResult.WHITE_WIN and match.black_player_id == current_user.id:
-            losses += 1
-        elif match.result == MatchResult.BLACK_WIN and match.white_player_id == current_user.id:
-            losses += 1
-        elif match.result == MatchResult.DRAW:
+        if not match.result:
+            continue
+            
+        if match.result == MatchResult.DRAW:
             draws += 1
-        elif match.result == MatchResult.FORFEIT_WHITE and match.black_player_id == current_user.id:
-            wins += 1
-        elif match.result == MatchResult.FORFEIT_BLACK and match.white_player_id == current_user.id:
-            wins += 1
-        elif match.result == MatchResult.FORFEIT_WHITE and match.white_player_id == current_user.id:
-            losses += 1
-        elif match.result == MatchResult.FORFEIT_BLACK and match.black_player_id == current_user.id:
-            losses += 1
+        elif match.white_player_id == current_user.id:
+            if match.result in [MatchResult.WHITE_WIN, MatchResult.FORFEIT_BLACK]:
+                wins += 1
+            elif match.result in [MatchResult.BLACK_WIN, MatchResult.FORFEIT_WHITE]:
+                losses += 1
+        elif match.black_player_id == current_user.id:
+            if match.result in [MatchResult.BLACK_WIN, MatchResult.FORFEIT_WHITE]:
+                wins += 1
+            elif match.result in [MatchResult.WHITE_WIN, MatchResult.FORFEIT_BLACK]:
+                losses += 1
 
     total_matches = wins + losses + draws
     win_percentage = (wins / total_matches * 100) if total_matches > 0 else 0
