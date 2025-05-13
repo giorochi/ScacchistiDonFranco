@@ -214,7 +214,9 @@ def admin_tournaments():
 def utility_processor():
     def get_all_players():
         return Player.query.order_by(Player.name).all()
-    return dict(get_all_players=get_all_players)
+    def now():
+        return datetime.now()
+    return dict(get_all_players=get_all_players, now=now)
 
 @app.route('/admin/tournament/<int:tournament_id>')
 @login_required
