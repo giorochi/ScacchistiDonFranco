@@ -210,8 +210,11 @@ def admin_tournaments():
     tournaments = Tournament.query.order_by(Tournament.start_date.desc()).all()
     return render_template('admin/tournaments.html', tournaments=tournaments)
 
-def get_all_players():
-    return Player.query.order_by(Player.name).all()
+@app.context_processor
+def utility_processor():
+    def get_all_players():
+        return Player.query.order_by(Player.name).all()
+    return dict(get_all_players=get_all_players)
 
 @app.route('/admin/tournament/<int:tournament_id>')
 @login_required
