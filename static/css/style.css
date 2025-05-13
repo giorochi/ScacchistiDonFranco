@@ -307,21 +307,21 @@ footer a:hover {
     .hero h1 {
         font-size: 2rem;
     }
-    
+
     .hero p {
         font-size: 1rem;
     }
-    
+
     .logo-container img {
         height: 60px;
         margin: 10px;
     }
-    
+
     .bracket {
         overflow-x: auto;
         padding-bottom: 20px;
     }
-    
+
     .bracket-round {
         width: 180px;
     }
@@ -456,4 +456,47 @@ footer a:hover {
     font-size: 1.5rem;
     color: var(--dark-color);
     margin-bottom: 30px;
+}
+
+/* Tournament Bracket Styles */
+.tournament-bracket {
+    display: flex;
+    gap: 2rem;
+    padding: 1rem;
+    overflow-x: auto;
+}
+
+.round {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    min-width: 200px;
+}
+
+.round-header {
+    text-align: center;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.match {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 0.5rem;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.player {
+    padding: 0.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.player:last-child {
+    border-bottom: none;
+}
+
+.winner {
+    background-color: #e8f5e9;
+    font-weight: bold;
 }
