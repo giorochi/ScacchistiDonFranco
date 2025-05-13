@@ -1,4 +1,37 @@
 // Function to create player statistics chart
+function createPlayerStatsChart() {
+    const canvas = document.getElementById('playerStatsChart');
+    if (!canvas) return;
+
+    const wins = parseInt(canvas.dataset.wins || 0);
+    const draws = parseInt(canvas.dataset.draws || 0);
+    const losses = parseInt(canvas.dataset.losses || 0);
+
+    new Chart(canvas, {
+        type: 'pie',
+        data: {
+            labels: ['Wins', 'Draws', 'Losses'],
+            datasets: [{
+                data: [wins, draws, losses],
+                backgroundColor: ['#28a745', '#ffc107', '#dc3545']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+// Initialize charts when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    createPlayerStatsChart();
+});
 function createPlayerStatsChart(canvasId, wins, draws, losses) {
     const ctx = document.getElementById(canvasId).getContext('2d');
     
