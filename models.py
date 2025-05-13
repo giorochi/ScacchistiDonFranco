@@ -179,8 +179,10 @@ class Match(db.Model):
             'round': self.round,
             'knockout_round': self.knockout_round,
             'knockout_match_num': self.knockout_match_num,
-            'white_player': self.white_player.name if self.white_player else None,
-            'black_player': self.black_player.name if self.black_player else None,
+            'white_player_id': self.white_player_id,
+            'black_player_id': self.black_player_id,
+            'white_player_name': self.white_player.name if self.white_player else None,
+            'black_player_name': self.black_player.name if self.black_player else None,
             'result': self.result,
             'status': self.status,
             'next_match_id': self.next_match_id
