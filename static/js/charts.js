@@ -1,7 +1,16 @@
 // Function to create player statistics chart
 function createPlayerStatsChart() {
     const canvas = document.getElementById('playerStatsChart');
-    if (!canvas) return;
+    if (!canvas) {
+        console.log('Canvas element not found');
+        return;
+    }
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+        console.log('Could not get 2d context');
+        return;
+    }
 
     const wins = parseInt(canvas.dataset.wins || 0);
     const draws = parseInt(canvas.dataset.draws || 0);

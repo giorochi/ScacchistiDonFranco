@@ -221,8 +221,12 @@
                     <h3><i class="fas fa-chart-pie"></i> Statistics</h3>
                 </div>
                 <div class="card-body">
-                    <div class="chart-container">
-                        <canvas id="playerStatsChart" data-wins="{{ stats.wins }}" data-draws="{{ stats.draws }}" data-losses="{{ stats.losses }}"></canvas>
+                    <div class="chart-container" style="height: 300px;">
+                        <canvas id="playerStatsChart" 
+                                data-wins="{{ stats.wins if stats.wins is not none else 0 }}" 
+                                data-draws="{{ stats.draws if stats.draws is not none else 0 }}" 
+                                data-losses="{{ stats.losses if stats.losses is not none else 0 }}">
+                        </canvas>
                     </div>
                     
                     <div class="mt-4">
