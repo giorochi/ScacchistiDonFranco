@@ -51,7 +51,6 @@ def internal_error(error):
 # Create tables
 with app.app_context():
     import models  # noqa: F401
-    db.drop_all()
     db.create_all()
     logging.info("Database tables created")
 
