@@ -83,6 +83,7 @@ class Tournament(db.Model):
     group_count = db.Column(db.Integer, default=4)  # Number of groups
     players_per_group = db.Column(db.Integer, default=4)  # Players per group
     knockout_players = db.Column(db.Integer, default=8)  # Players advancing to knockout
+    board_count = db.Column(db.Integer, default=10)  # Number of available chessboards
     
     # Relationships
     players = db.relationship('TournamentPlayer', back_populates='tournament', cascade='all, delete-orphan')

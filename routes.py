@@ -278,8 +278,9 @@ def admin_tournament_new():
         group_count = int(request.form.get('group_count', 4))
         players_per_group = int(request.form.get('players_per_group', 4))
         knockout_players = int(request.form.get('knockout_players', 8))
+        board_count = int(request.form.get('board_count', 10))
         
-        if not name or not start_date or not end_date:
+        if not name or not start_date or not end_date or not board_count:
             flash('Please fill all required fields', 'danger')
             return redirect(url_for('admin_tournament_new'))
         
@@ -299,7 +300,8 @@ def admin_tournament_new():
             status=TournamentStatus.DRAFT,
             group_count=group_count,
             players_per_group=players_per_group,
-            knockout_players=knockout_players
+            knockout_players=knockout_players,
+            board_count=board_count
         )
         
         db.session.add(tournament)
