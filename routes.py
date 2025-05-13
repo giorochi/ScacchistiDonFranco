@@ -210,11 +210,11 @@ def admin_tournaments():
     tournaments = Tournament.query.order_by(Tournament.start_date.desc()).all()
     return render_template('admin/tournaments.html', tournaments=tournaments)
 
-@app.route('/admin/tournament/<int:tournament_id>')
-@login_required
 def get_all_players():
     return Player.query.order_by(Player.name).all()
 
+@app.route('/admin/tournament/<int:tournament_id>')
+@login_required
 def admin_tournament_detail(tournament_id):
     # Check if user is admin
     if not hasattr(current_user, 'username'):
