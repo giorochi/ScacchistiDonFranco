@@ -22,7 +22,7 @@ class Base(DeclarativeBase):
 # Initialize Flask app
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "chess_tournament_secret_key")
-app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)  # needed for url_for to generate with https
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 # Database configuration
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///chess_tournament.db")
@@ -51,23 +51,11 @@ def internal_error(error):
 # Create tables
 with app.app_context():
     import models  # noqa: F401
+    db.drop_all()
     db.create_all()
     logging.info("Database tables created")
 
 # Import user loader after models are defined
-from flask_login import LoginManager
-from models import Admin, Player, Tournament, Group, Match, TournamentPlayer
-
-app = Flask(__name__)
-
-def init_db():
-    with app.app_context():
-        db.drop_all()
-        db.create_all()
-        app.logger.info("Database tables created")
-
-init_db()
-
 @login_manager.user_loader
 def load_user(user_id):
     # Check if this is an admin (admin IDs are integers)
