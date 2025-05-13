@@ -3,6 +3,11 @@ from datetime import datetime, timedelta
 from app import db
 from models import Tournament, Player, TournamentPlayer, Group, Match, MatchStatus, MatchResult, TournamentStatus
 
+def assign_board_numbers(matches, total_boards):
+    # Assegna i numeri delle scacchiere in modo ciclico
+    for i, match in enumerate(matches):
+        match.board_number = (i % total_boards) + 1
+
 def create_groups(tournament_id):
     """Create groups for a tournament and assign players to groups"""
     tournament = Tournament.query.get(tournament_id)
