@@ -1,0 +1,70 @@
+{% extends "layout.html" %}
+
+{% block title %}Login - Chess Tournament{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="login-container">
+        <h2>Login</h2>
+        
+        <ul class="nav nav-tabs login-tabs mb-4" id="loginTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="player-tab" data-bs-toggle="tab" data-bs-target="#player" type="button" role="tab" aria-controls="player" aria-selected="true">
+                    Player Access
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="admin-tab" data-bs-toggle="tab" data-bs-target="#admin" type="button" role="tab" aria-controls="admin" aria-selected="false">
+                    Admin Login
+                </button>
+            </li>
+        </ul>
+        
+        <div class="tab-content" id="loginTabsContent">
+            <!-- Player Login -->
+            <div class="tab-pane fade show active" id="player" role="tabpanel" aria-labelledby="player-tab">
+                <form method="post" action="{{ url_for('login') }}">
+                    <div class="mb-3">
+                        <label for="access_code" class="form-label">Access Code</label>
+                        <input type="text" class="form-control" id="access_code" name="access_code" required>
+                        <div class="form-text">Enter the access code provided to you for the tournament.</div>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt"></i> Access Tournament
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="text-center mt-4">
+                    <p>Don't have an access code? Contact the tournament organizer.</p>
+                </div>
+            </div>
+            
+            <!-- Admin Login -->
+            <div class="tab-pane fade" id="admin" role="tabpanel" aria-labelledby="admin-tab">
+                <form method="post" action="{{ url_for('login') }}">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="password" name="password" required>
+                            <button class="btn btn-outline-secondary toggle-password" type="button" data-password-input="#password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt"></i> Login
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

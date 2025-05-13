@@ -1,0 +1,309 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ tournament.name }} - Tournament{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-trophy"></i> {{ tournament.name }}</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <p class="lead">{{ tournament.description or 'No description available for this tournament.' }}</p>
+                            
+                            <div class="row mt-4">
+                                <div class="col-md-6">
+                                    <h5><i class="fas fa-info-circle"></i> Tournament Details</h5>
+                                    <table class="table table-sm">
+                                        <tbody>
+                                            <tr>
+                                                <th>Location:</th>
+                                                <td>{{ tournament.location or 'N/A' }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Start Date:</th>
+                                                <td>{{ tournament.start_date.strftime('%d/%m/%Y') }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>End Date:</th>
+                                                <td>{{ tournament.end_date.strftime('%d/%m/%Y') }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Status:</th>
+                                                <td>
+                                                    <span class="tournament-status status-{{ tournament.status }}">
+                                                        {{ tournament.status|replace('_', ' ')|title }}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5><i class="fas fa-users"></i> Participants</h5>
+                                    <div class="d-flex align-items-center">
+                                        <div class="stats-value me-3">{{ tournament.players|length }}</div>
+                                        <div>
+                                            <p class="mb-0">registered players</p>
+                                            <p class="text-muted mb-0">{{ tournament.group_count }} groups of {{ tournament.players_per_group }} players</p>
+                                        </div>
+                                    </div>
+                                    
+                                    {% if tournament.status != 'draft' %}
+                                        <div class="alert alert-info mt-3">
+                                            <i class="fas fa-info-circle"></i>
+                                            Top {{ tournament.knockout_players }} players will advance to the knockout stage
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="text-center mb-4">
+                                <img src="https://pixabay.com/get/gc37188e8cc9fe629f8c710698b82ed0f05260399e802464df38f6e9a7451afc61cf7ea53faae1f503a0ee3b83213135e2c6762359470a2a6334fd91f2918334b_1280.jpg" alt="Chess Tournament" class="img-fluid rounded">
+                            </div>
+                            
+                            {% if current_user.is_authenticated %}
+                                {% if current_user.username is defined %}
+                                    <!-- Admin Actions -->
+                                    <div class="d-grid gap-2">
+                                        <a href="{{ url_for('admin_tournament_detail', tournament_id=tournament.id) }}" class="btn btn-primary">
+                                            <i class="fas fa-cogs"></i> Manage Tournament
+                                        </a>
+                                    </div>
+                                {% else %}
+                                    <!-- Check if player is in this tournament -->
+                                    {% set in_tournament = false %}
+                                    {% for tp in tournament.players %}
+                                        {% if tp.player_id == current_user.id %}
+                                            {% set in_tournament = true %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    
+                                    {% if in_tournament %}
+                                        <div class="alert alert-success">
+                                            <i class="fas fa-check-circle"></i> You are registered for this tournament
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                            {% else %}
+                                <div class="card mt-3">
+                                    <div class="card-body">
+                                        <p>To view your matches and results, please log in with your player access code.</p>
+                                        <a href="{{ url_for('login') }}" class="btn btn-primary btn-sm">
+                                            <i class="fas fa-sign-in-alt"></i> Player Login
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <ul class="nav nav-tabs mb-4" id="tournamentTabs" role="tablist">
+                {% if groups %}
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="groups-tab" data-bs-toggle="tab" data-bs-target="#groups" type="button" role="tab" aria-controls="groups" aria-selected="true">
+                            <i class="fas fa-layer-group"></i> Groups
+                        </button>
+                    </li>
+                {% endif %}
+                
+                {% if knockout_matches %}
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link {% if not groups %}active{% endif %}" id="knockout-tab" data-bs-toggle="tab" data-bs-target="#knockout" type="button" role="tab" aria-controls="knockout" aria-selected="{% if not groups %}true{% else %}false{% endif %}">
+                            <i class="fas fa-sitemap"></i> Knockout Stage
+                        </button>
+                    </li>
+                {% endif %}
+                
+                {% if not groups and not knockout_matches %}
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab" aria-controls="info" aria-selected="true">
+                            <i class="fas fa-info-circle"></i> Tournament Information
+                        </button>
+                    </li>
+                {% endif %}
+            </ul>
+            
+            <div class="tab-content" id="tournamentTabContent">
+                {% if not groups and not knockout_matches %}
+                    <div class="tab-pane fade show active" id="info" role="tabpanel" aria-labelledby="info-tab">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="text-center mb-4">
+                                    <img src="https://pixabay.com/get/g4082900bb28924574baed9614293621c9187adfb3d876791bd09132360cad82f5bc5cefce75d569d1fb8acb38f19160fe0147c6118dd886f900ba9f23cc0b87a_1280.jpg" alt="Chess Tournament Setup" class="img-fluid rounded" style="max-height: 400px;">
+                                </div>
+                                
+                                <div class="alert alert-info text-center">
+                                    <h4 class="alert-heading">Tournament Not Started Yet</h4>
+                                    <p>This tournament is currently in the setup phase. Groups and matches will be available once the tournament begins.</p>
+                                    
+                                    {% if tournament.start_date > now() %}
+                                        <p class="mb-0">
+                                            <strong>Starting in:</strong> 
+                                            {{ (tournament.start_date - now()).days }} days
+                                        </p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                {% if groups %}
+                    <div class="tab-pane fade show active" id="groups" role="tabpanel" aria-labelledby="groups-tab">
+                        <div class="row">
+                            {% for group in groups %}
+                                <div class="col-md-6 mb-4">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h4>{{ group.name }}</h4>
+                                        </div>
+                                        <div class="card-body">
+                                            {% if group_standings and group_standings[group.id] %}
+                                                <div class="table-container">
+                                                    <table class="table table-hover">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>#</th>
+                                                                <th>Player</th>
+                                                                <th>Points</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {% for tp in group_standings[group.id] %}
+                                                                <tr>
+                                                                    <td>{{ loop.index }}</td>
+                                                                    <td>
+                                                                        {{ tp.player.name }}
+                                                                        {% if current_user.is_authenticated and not current_user.username is defined and current_user.id == tp.player_id %}
+                                                                            <span class="badge bg-primary">You</span>
+                                                                        {% endif %}
+                                                                    </td>
+                                                                    <td>{{ tp.points }}</td>
+                                                                </tr>
+                                                            {% endfor %}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                                
+                                                {% set player_names = group_standings[group.id]|map(attribute='player.name')|list %}
+                                                {% set player_points = group_standings[group.id]|map(attribute='points')|list %}
+                                                
+                                                <div class="chart-container mt-4">
+                                                    <canvas id="group{{ group.id }}Chart" 
+                                                        class="group-standings-chart"
+                                                        data-players='{{ player_names|tojson }}'
+                                                        data-points='{{ player_points|tojson }}'>
+                                                    </canvas>
+                                                </div>
+                                            {% else %}
+                                                <div class="alert alert-info">
+                                                    <i class="fas fa-info-circle"></i> No standings available for this group.
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+                
+                {% if knockout_matches %}
+                    <div class="tab-pane fade {% if not groups %}show active{% endif %}" id="knockout" role="tabpanel" aria-labelledby="knockout-tab">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Knockout Stage</h4>
+                            </div>
+                            <div class="card-body">
+                                <!-- Knockout Bracket Visualization -->
+                                <div id="tournamentBracket" 
+                                     class="mb-4" 
+                                     data-matches='{{ knockout_matches|tojson }}' 
+                                     data-rounds='{{ knockout_matches|map(attribute='round')|list|max }}'>
+                                </div>
+                                
+                                <!-- Highlight current user's matches if they're a player -->
+                                {% if current_user.is_authenticated and not current_user.username is defined %}
+                                    <h5 class="mt-4">Your Knockout Matches</h5>
+                                    {% set user_has_matches = false %}
+                                    <div class="list-group">
+                                        {% for match in knockout_matches %}
+                                            {% if match.white_player_id == current_user.id or match.black_player_id == current_user.id %}
+                                                {% set user_has_matches = true %}
+                                                <div class="list-group-item">
+                                                    <div class="d-flex w-100 justify-content-between">
+                                                        <h5 class="mb-1">
+                                                            {{ match.knockout_round|title if match.knockout_round else 'Round ' ~ match.round }}
+                                                        </h5>
+                                                        <small>
+                                                            {% if match.start_time %}
+                                                                {{ match.start_time.strftime('%d/%m/%Y %H:%M') }}
+                                                            {% else %}
+                                                                TBD
+                                                            {% endif %}
+                                                        </small>
+                                                    </div>
+                                                    <p class="mb-1">
+                                                        {% if match.white_player_id == current_user.id %}
+                                                            <span class="badge bg-light text-dark">You (White)</span> vs 
+                                                            {% if match.black_player %}
+                                                                {{ match.black_player.name }}
+                                                            {% else %}
+                                                                TBD
+                                                            {% endif %}
+                                                        {% else %}
+                                                            {% if match.white_player %}
+                                                                {{ match.white_player.name }}
+                                                            {% else %}
+                                                                TBD
+                                                            {% endif %}
+                                                            vs <span class="badge bg-dark text-light">You (Black)</span>
+                                                        {% endif %}
+                                                    </p>
+                                                    <small>
+                                                        Board: {% if match.board_number %}{{ match.board_number }}{% else %}TBD{% endif %}
+                                                        | Status: <span class="match-status status-{{ match.status }}">
+                                                            {{ match.status|replace('_', ' ')|title }}
+                                                        </span>
+                                                    </small>
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    {% if not user_has_matches %}
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-info-circle"></i> You don't have any knockout matches in this tournament.
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    // Helper function to get current time (used for displaying "starting in X days")
+    function now() {
+        return new Date();
+    }
+</script>
+{% endblock %}
+{% endblock %}

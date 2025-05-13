@@ -1,0 +1,183 @@
+{% extends "layout.html" %}
+
+{% block title %}Tournament Management - Chess Tournament{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h2><i class="fas fa-trophy"></i> Tournament Management</h2>
+                    <a href="{{ url_for('admin_tournament_new') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Create Tournament
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if creating %}
+                        <!-- Tournament Creation Form -->
+                        <form method="post" action="{{ url_for('admin_tournament_new') }}">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="name" class="form-label">Tournament Name *</label>
+                                        <input type="text" class="form-control" id="name" name="name" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="description" class="form-label">Description</label>
+                                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="location" class="form-label">Location</label>
+                                        <input type="text" class="form-control" id="location" name="location">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="start_date" class="form-label">Start Date *</label>
+                                        <input type="date" class="form-control" id="start_date" name="start_date" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="end_date" class="form-label">End Date *</label>
+                                        <input type="date" class="form-control" id="end_date" name="end_date" required>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label for="group_count" class="form-label">Group Count</label>
+                                                <input type="number" class="form-control" id="group_count" name="group_count" min="1" value="4">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label for="players_per_group" class="form-label">Players/Group</label>
+                                                <input type="number" class="form-control" id="players_per_group" name="players_per_group" min="2" value="4">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label for="knockout_players" class="form-label">KO Stage Players</label>
+                                                <input type="number" class="form-control" id="knockout_players" name="knockout_players" min="2" value="8">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-end mt-3">
+                                <a href="{{ url_for('admin_tournaments') }}" class="btn btn-secondary me-2">Cancel</a>
+                                <button type="submit" class="btn btn-primary">Create Tournament</button>
+                            </div>
+                        </form>
+                    {% else %}
+                        <!-- Tournament List -->
+                        <div class="mb-3">
+                            <input type="text" class="form-control table-filter" placeholder="Search tournaments..." data-table="#tournamentsTable">
+                        </div>
+                        
+                        <div class="table-container">
+                            <table class="table table-hover" id="tournamentsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Location</th>
+                                        <th>Start Date</th>
+                                        <th>End Date</th>
+                                        <th>Players</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for tournament in tournaments %}
+                                        <tr>
+                                            <td>
+                                                <a href="{{ url_for('admin_tournament_detail', tournament_id=tournament.id) }}">
+                                                    {{ tournament.name }}
+                                                </a>
+                                            </td>
+                                            <td>{{ tournament.location or 'N/A' }}</td>
+                                            <td>{{ tournament.start_date.strftime('%d/%m/%Y') }}</td>
+                                            <td>{{ tournament.end_date.strftime('%d/%m/%Y') }}</td>
+                                            <td>{{ tournament.players|length }}</td>
+                                            <td>
+                                                <span class="tournament-status status-{{ tournament.status }}">
+                                                    {{ tournament.status|replace('_', ' ')|title }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <a href="{{ url_for('admin_tournament_detail', tournament_id=tournament.id) }}" class="btn btn-outline-primary" title="View">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a href="{{ url_for('admin_tournament_edit', tournament_id=tournament.id) }}" class="btn btn-outline-secondary" title="Edit">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <button type="button" class="btn btn-outline-danger btn-delete" 
+                                                            title="Delete" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#deleteTournamentModal" 
+                                                            data-tournament-id="{{ tournament.id }}" 
+                                                            data-tournament-name="{{ tournament.name }}">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        {% if not tournaments %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> No tournaments have been created yet.
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Tournament Modal -->
+<div class="modal fade" id="deleteTournamentModal" tabindex="-1" aria-labelledby="deleteTournamentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteTournamentModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the tournament <strong id="tournamentNameToDelete"></strong>?</p>
+                <p class="text-danger">This action cannot be undone. All associated data including matches, groups, and player registrations will be permanently deleted.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteTournamentForm" method="post" action="">
+                    <button type="submit" class="btn btn-danger">Delete Tournament</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set up delete tournament modal
+        const deleteTournamentModal = document.getElementById('deleteTournamentModal');
+        if (deleteTournamentModal) {
+            deleteTournamentModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const tournamentId = button.getAttribute('data-tournament-id');
+                const tournamentName = button.getAttribute('data-tournament-name');
+                
+                document.getElementById('tournamentNameToDelete').textContent = tournamentName;
+                document.getElementById('deleteTournamentForm').action = '{{ url_for("admin_tournament_delete", tournament_id=0) }}'.replace('0', tournamentId);
+            });
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

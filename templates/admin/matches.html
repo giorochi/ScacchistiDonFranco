@@ -1,0 +1,114 @@
+{% extends "layout.html" %}
+
+{% block title %}Edit Match - Chess Tournament{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-chess"></i> Edit Match</h2>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{{ url_for('admin_match_edit', match_id=match.id) }}">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card mb-4">
+                                    <div class="card-header bg-light">
+                                        <h4>Match Details</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Tournament</label>
+                                            <input type="text" class="form-control" value="{{ match.tournament.name }}" readonly>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label">Group</label>
+                                            <input type="text" class="form-control" value="{{ match.group.name if match.group else 'Knockout Stage' }}" readonly>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label">Round</label>
+                                            <input type="text" class="form-control" value="{{ match.knockout_round|title if match.knockout_round else 'Round ' ~ match.round }}" readonly>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label">White Player</label>
+                                            <input type="text" class="form-control" value="{{ match.white_player.name if match.white_player else 'TBD' }}" readonly>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label">Black Player</label>
+                                            <input type="text" class="form-control" value="{{ match.black_player.name if match.black_player else 'TBD' }}" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card mb-4">
+                                    <div class="card-header bg-light">
+                                        <h4>Match Settings</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="status" class="form-label">Match Status</label>
+                                            <select class="form-select" id="status" name="status" required>
+                                                <option value="scheduled" {% if match.status == 'scheduled' %}selected{% endif %}>Scheduled</option>
+                                                <option value="in_progress" {% if match.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                                <option value="completed" {% if match.status == 'completed' %}selected{% endif %}>Completed</option>
+                                                <option value="cancelled" {% if match.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="board_number" class="form-label">Board Number</label>
+                                            <input type="number" class="form-control" id="board_number" name="board_number" min="1" max="999" value="{{ match.board_number or '' }}">
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="start_time" class="form-label">Start Time</label>
+                                            <input type="datetime-local" class="form-control" id="start_time" name="start_time" 
+                                                value="{{ match.start_time.strftime('%Y-%m-%dT%H:%M') if match.start_time else '' }}">
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="result" class="form-label">Result</label>
+                                            <select class="form-select" id="result" name="result">
+                                                <option value="" {% if not match.result %}selected{% endif %}>-- No Result Yet --</option>
+                                                <option value="white_win" {% if match.result == 'white_win' %}selected{% endif %}>White Wins</option>
+                                                <option value="black_win" {% if match.result == 'black_win' %}selected{% endif %}>Black Wins</option>
+                                                <option value="draw" {% if match.result == 'draw' %}selected{% endif %}>Draw</option>
+                                                <option value="forfeit_white" {% if match.result == 'forfeit_white' %}selected{% endif %}>White Forfeits</option>
+                                                <option value="forfeit_black" {% if match.result == 'forfeit_black' %}selected{% endif %}>Black Forfeits</option>
+                                                <option value="no_show" {% if match.result == 'no_show' %}selected{% endif %}>No Show</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="notes" class="form-label">Notes</label>
+                                            <textarea class="form-control" id="notes" name="notes" rows="3">{{ match.notes or '' }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> 
+                            Setting a result and changing status to "Completed" will automatically update group standings and advance players in knockout rounds if applicable.
+                        </div>
+                        
+                        <div class="text-end mt-3">
+                            <a href="{{ url_for('admin_tournament_detail', tournament_id=match.tournament_id) }}" class="btn btn-secondary me-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

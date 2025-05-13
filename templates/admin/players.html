@@ -1,0 +1,204 @@
+{% extends "layout.html" %}
+
+{% block title %}Player Management - Chess Tournament{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h2><i class="fas fa-users"></i> Player Management</h2>
+                    <a href="{{ url_for('admin_player_new') }}" class="btn btn-primary">
+                        <i class="fas fa-user-plus"></i> Add New Player
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if creating %}
+                        <!-- Player Creation Form -->
+                        <form method="post" action="{{ url_for('admin_player_new') }}">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="name" class="form-label">Player Name *</label>
+                                        <input type="text" class="form-control" id="name" name="name" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="email" class="form-label">Email</label>
+                                        <input type="email" class="form-control" id="email" name="email">
+                                        <div class="form-text">Optional but recommended for contact purposes.</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="phone" class="form-label">Phone Number</label>
+                                        <input type="tel" class="form-control" id="phone" name="phone">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="rating" class="form-label">Rating</label>
+                                        <input type="number" class="form-control" id="rating" name="rating" min="0" max="3000">
+                                        <div class="form-text">Optional chess rating for seeding purposes.</div>
+                                    </div>
+                                    <div class="alert alert-info mt-4">
+                                        <p>
+                                            <i class="fas fa-info-circle"></i>
+                                            A unique access code will be automatically generated for this player.
+                                        </p>
+                                        <p class="mb-0">
+                                            The player will use this code to log in and view their matches and results.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-end mt-3">
+                                <a href="{{ url_for('admin_players') }}" class="btn btn-secondary me-2">Cancel</a>
+                                <button type="submit" class="btn btn-primary">Create Player</button>
+                            </div>
+                        </form>
+                    {% elif editing and player %}
+                        <!-- Player Edit Form -->
+                        <form method="post" action="{{ url_for('admin_player_edit', player_id=player.id) }}">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="name" class="form-label">Player Name *</label>
+                                        <input type="text" class="form-control" id="name" name="name" value="{{ player.name }}" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="email" class="form-label">Email</label>
+                                        <input type="email" class="form-control" id="email" name="email" value="{{ player.email or '' }}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="phone" class="form-label">Phone Number</label>
+                                        <input type="tel" class="form-control" id="phone" name="phone" value="{{ player.phone or '' }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="rating" class="form-label">Rating</label>
+                                        <input type="number" class="form-control" id="rating" name="rating" min="0" max="3000" value="{{ player.rating or '' }}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Access Code</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" value="{{ player.access_code }}" readonly>
+                                            <button class="btn btn-outline-secondary copy-access-code" type="button" data-access-code="{{ player.access_code }}">
+                                                <i class="fas fa-copy"></i>
+                                            </button>
+                                        </div>
+                                        <div class="form-text">This is the player's unique access code.</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-end mt-3">
+                                <a href="{{ url_for('admin_players') }}" class="btn btn-secondary me-2">Cancel</a>
+                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                            </div>
+                        </form>
+                    {% else %}
+                        <!-- Player List -->
+                        <div class="mb-3">
+                            <input type="text" class="form-control table-filter" placeholder="Search players..." data-table="#playersTable">
+                        </div>
+                        
+                        <div class="table-container">
+                            <table class="table table-hover" id="playersTable">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Access Code</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
+                                        <th>Rating</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for player in players %}
+                                        <tr>
+                                            <td>{{ player.name }}</td>
+                                            <td>
+                                                <span class="badge bg-secondary">{{ player.access_code }}</span>
+                                                <button class="btn btn-sm btn-link copy-access-code p-0 ms-1" data-access-code="{{ player.access_code }}">
+                                                    <i class="fas fa-copy"></i>
+                                                </button>
+                                            </td>
+                                            <td>{{ player.email or 'N/A' }}</td>
+                                            <td>{{ player.phone or 'N/A' }}</td>
+                                            <td>{{ player.rating or 'N/A' }}</td>
+                                            <td>{{ player.created_at.strftime('%d/%m/%Y') }}</td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <a href="{{ url_for('admin_player_edit', player_id=player.id) }}" class="btn btn-outline-primary" title="Edit">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <button type="button" class="btn btn-outline-danger btn-delete" 
+                                                            title="Delete" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#deletePlayerModal" 
+                                                            data-player-id="{{ player.id }}" 
+                                                            data-player-name="{{ player.name }}">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        {% if not players %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> No players have been registered yet.
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Player Modal -->
+<div class="modal fade" id="deletePlayerModal" tabindex="-1" aria-labelledby="deletePlayerModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deletePlayerModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the player <strong id="playerNameToDelete"></strong>?</p>
+                <p class="text-danger">This action cannot be undone. The player will be removed from all tournaments, and all match records involving this player will be affected.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deletePlayerForm" method="post" action="">
+                    <button type="submit" class="btn btn-danger">Delete Player</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set up delete player modal
+        const deletePlayerModal = document.getElementById('deletePlayerModal');
+        if (deletePlayerModal) {
+            deletePlayerModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const playerId = button.getAttribute('data-player-id');
+                const playerName = button.getAttribute('data-player-name');
+                
+                document.getElementById('playerNameToDelete').textContent = playerName;
+                document.getElementById('deletePlayerForm').action = '{{ url_for("admin_player_delete", player_id=0) }}'.replace('0', playerId);
+            });
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

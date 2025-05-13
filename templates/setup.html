@@ -1,0 +1,70 @@
+{% extends "layout.html" %}
+
+{% block title %}Initial Setup - Chess Tournament{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="setup-container">
+        <h1>Initial Setup</h1>
+        
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='svg/logo_chess_group.svg') }}" alt="Chess Group Logo">
+            <img src="{{ url_for('static', filename='svg/logo_library.svg') }}" alt="Library Logo">
+        </div>
+        
+        <div class="alert alert-info mb-4">
+            <i class="fas fa-info-circle"></i> Welcome to the Chess Tournament Management System!
+            <p class="mb-0 mt-2">Please create an admin account to begin managing tournaments and players.</p>
+        </div>
+        
+        <form method="post" action="{{ url_for('setup') }}">
+            <div class="mb-3">
+                <label for="username" class="form-label">Admin Username *</label>
+                <input type="text" class="form-control" id="username" name="username" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="email" class="form-label">Email Address *</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="password" class="form-label">Password *</label>
+                <div class="input-group">
+                    <input type="password" class="form-control" id="password" name="password" required>
+                    <button class="btn btn-outline-secondary toggle-password" type="button" data-password-input="#password">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="confirm_password" class="form-label">Confirm Password *</label>
+                <div class="input-group">
+                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                    <button class="btn btn-outline-secondary toggle-password" type="button" data-password-input="#confirm_password">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-check-circle"></i> Create Admin Account
+                </button>
+            </div>
+        </form>
+        
+        <div class="mt-4 text-center text-muted">
+            <p>After creating the admin account, you'll be able to:</p>
+            <ul class="text-start">
+                <li>Create and manage tournaments</li>
+                <li>Add players and generate their access codes</li>
+                <li>Organize group and knockout stages</li>
+                <li>Assign chessboards to matches</li>
+                <li>Track results and update standings</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

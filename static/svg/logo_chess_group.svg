@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 200">
+  <!-- Background -->
+  <rect x="0" y="0" width="300" height="200" rx="10" fill="#2c3e50" />
+  
+  <!-- Chess Pieces -->
+  <g transform="translate(40, 40) scale(0.8)">
+    <!-- King -->
+    <path d="M45,20 L55,20 L55,10 L65,10 L65,20 L75,20 L75,30 L65,30 L65,80 L75,90 L75,100 L45,100 L45,90 L55,80 L55,30 L45,30 Z" fill="#ecf0f1" />
+    
+    <!-- Queen -->
+    <path d="M115,20 C115,15 120,15 120,20 C120,25 125,25 125,20 C125,15 130,15 130,20 C130,25 135,25 135,20 C135,15 140,15 140,20 L140,30 L135,40 L135,80 L145,90 L145,100 L110,100 L110,90 L120,80 L120,40 L115,30 Z" fill="#ecf0f1" />
+    
+    <!-- Knight -->
+    <path d="M185,100 L185,90 L195,80 L195,60 C195,50 175,45 175,35 C175,25 185,20 195,30 C205,40 215,35 215,50 C215,65 205,70 205,80 L215,90 L215,100 Z" fill="#ecf0f1" />
+  </g>
+  
+  <!-- Text -->
+  <text x="150" y="130" font-family="Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#ecf0f1">
+    Gruppo Scacchistico Parrocchiale
+  </text>
+  <text x="150" y="155" font-family="Arial, sans-serif" font-size="16" font-style="italic" text-anchor="middle" fill="#ecf0f1">
+    "don Franco Venneri"
+  </text>
+  
+  <!-- Border -->
+  <rect x="5" y="5" width="290" height="190" rx="8" fill="none" stroke="#f39c12" stroke-width="3" />
+</svg>

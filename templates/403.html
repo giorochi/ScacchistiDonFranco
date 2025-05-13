@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+
+{% block title %}403 Forbidden - Chess Tournament{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="error-container">
+        <div class="error-code">403</div>
+        <div class="error-message">Access Denied</div>
+        <p class="lead text-muted mb-4">You don't have permission to access this page.</p>
+        
+        <div class="text-center mb-5">
+            <img src="https://pixabay.com/get/g6121a0ea6a29fa996245e356593776dbd73369274a329644174a4bf092d479fbc72fc534ae12c50ae9a6e7673bb9e108968708d0f740ac83153ac0e710ccdc04_1280.jpg" alt="Chess Pieces" class="img-fluid rounded" style="max-height: 300px;">
+        </div>
+        
+        <div class="text-center">
+            <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-home"></i> Back to Home
+            </a>
+            
+            {% if not current_user.is_authenticated %}
+                <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg ms-2">
+                    <i class="fas fa-sign-in-alt"></i> Log In
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+
+{% block title %}404 Not Found - Chess Tournament{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="error-container">
+        <div class="error-code">404</div>
+        <div class="error-message">Page Not Found</div>
+        <p class="lead text-muted mb-4">The page you're looking for doesn't exist or has been moved.</p>
+        
+        <div class="text-center mb-5">
+            <img src="https://pixabay.com/get/g871a5c066b94db0877c0258b134c0eb3824a9ea84d42b1ee0fe75cec108d25a5c1d0a84c9efc77af46dd18b9cf68786d37272988b26b4b4bc4845e707ca38006_1280.jpg" alt="Chess Board" class="img-fluid rounded" style="max-height: 300px;">
+        </div>
+        
+        <div class="text-center">
+            <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-home"></i> Back to Home
+            </a>
+            
+            {% if current_user.is_authenticated and current_user.username is defined %}
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-primary btn-lg ms-2">
+                    <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+                </a>
+            {% elif current_user.is_authenticated %}
+                <a href="{{ url_for('player_dashboard') }}" class="btn btn-outline-primary btn-lg ms-2">
+                    <i class="fas fa-chess"></i> My Dashboard
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

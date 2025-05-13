@@ -1,0 +1,277 @@
+{% extends "layout.html" %}
+
+{% block title %}Player Dashboard - {{ player.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-user-circle"></i> Player Dashboard</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h3>Welcome, {{ player.name }}</h3>
+                            <p>This is your personal dashboard where you can track your tournament progress, check your matches, and view your statistics.</p>
+                            <div class="mt-3">
+                                <strong>Your Access Code:</strong>
+                                <div class="access-code">{{ player.access_code }}</div>
+                                <div class="mt-2">
+                                    <button class="btn btn-sm btn-outline-secondary copy-access-code" data-access-code="{{ player.access_code }}">
+                                        <i class="fas fa-copy"></i> Copy Code
+                                    </button>
+                                    <small class="text-muted ms-2">Keep this code safe - you'll need it to log in</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card stats-card">
+                                <h4>Performance Summary</h4>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <div class="stats-value text-success">{{ stats.wins }}</div>
+                                        <div class="stats-label">Wins</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="stats-value text-warning">{{ stats.draws }}</div>
+                                        <div class="stats-label">Draws</div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="stats-value text-danger">{{ stats.losses }}</div>
+                                        <div class="stats-label">Losses</div>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <div class="progress">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ stats.wins / stats.total * 100 if stats.total > 0 else 0 }}%" aria-valuenow="{{ stats.wins }}" aria-valuemin="0" aria-valuemax="{{ stats.total }}"></div>
+                                        <div class="progress-bar bg-warning" role="progressbar" style="width: {{ stats.draws / stats.total * 100 if stats.total > 0 else 0 }}%" aria-valuenow="{{ stats.draws }}" aria-valuemin="0" aria-valuemax="{{ stats.total }}"></div>
+                                        <div class="progress-bar bg-danger" role="progressbar" style="width: {{ stats.losses / stats.total * 100 if stats.total > 0 else 0 }}%" aria-valuenow="{{ stats.losses }}" aria-valuemin="0" aria-valuemax="{{ stats.total }}"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3><i class="fas fa-chess-clock"></i> Upcoming Matches</h3>
+                </div>
+                <div class="card-body">
+                    {% if upcoming_matches %}
+                        <div class="table-container">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Tournament</th>
+                                        <th>Opponent</th>
+                                        <th>Date & Time</th>
+                                        <th>Board</th>
+                                        <th>Color</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for match in upcoming_matches %}
+                                        <tr>
+                                            <td>{{ match.tournament.name }}</td>
+                                            <td>
+                                                {% if match.white_player_id == player.id %}
+                                                    {% if match.black_player %}
+                                                        {{ match.black_player.name }}
+                                                    {% else %}
+                                                        TBD
+                                                    {% endif %}
+                                                {% else %}
+                                                    {% if match.white_player %}
+                                                        {{ match.white_player.name }}
+                                                    {% else %}
+                                                        TBD
+                                                    {% endif %}
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if match.start_time %}
+                                                    {{ match.start_time.strftime('%d/%m/%Y %H:%M') }}
+                                                {% else %}
+                                                    TBD
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if match.board_number %}
+                                                    <span class="badge bg-primary">Board {{ match.board_number }}</span>
+                                                {% else %}
+                                                    TBD
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if match.white_player_id == player.id %}
+                                                    <span class="text-light bg-light p-1 rounded">White</span>
+                                                {% else %}
+                                                    <span class="text-white bg-dark p-1 rounded">Black</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <span class="match-status status-{{ match.status }}">
+                                                    {{ match.status|replace('_', ' ')|title }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> You have no upcoming matches scheduled at this time.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3><i class="fas fa-history"></i> Match History</h3>
+                </div>
+                <div class="card-body">
+                    {% if past_matches %}
+                        <div class="table-container">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Tournament</th>
+                                        <th>Opponent</th>
+                                        <th>Date</th>
+                                        <th>Result</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for match in past_matches %}
+                                        <tr>
+                                            <td>{{ match.tournament.name }}</td>
+                                            <td>
+                                                {% if match.white_player_id == player.id %}
+                                                    {% if match.black_player %}
+                                                        {{ match.black_player.name }}
+                                                    {% else %}
+                                                        N/A
+                                                    {% endif %}
+                                                {% else %}
+                                                    {% if match.white_player %}
+                                                        {{ match.white_player.name }}
+                                                    {% else %}
+                                                        N/A
+                                                    {% endif %}
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if match.start_time %}
+                                                    {{ match.start_time.strftime('%d/%m/%Y') }}
+                                                {% else %}
+                                                    N/A
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if match.result == 'white_win' and match.white_player_id == player.id %}
+                                                    <span class="text-success fw-bold">Win</span>
+                                                {% elif match.result == 'black_win' and match.black_player_id == player.id %}
+                                                    <span class="text-success fw-bold">Win</span>
+                                                {% elif match.result == 'white_win' and match.black_player_id == player.id %}
+                                                    <span class="text-danger">Loss</span>
+                                                {% elif match.result == 'black_win' and match.white_player_id == player.id %}
+                                                    <span class="text-danger">Loss</span>
+                                                {% elif match.result == 'draw' %}
+                                                    <span class="text-warning">Draw</span>
+                                                {% elif match.result == 'forfeit_white' and match.white_player_id == player.id %}
+                                                    <span class="text-danger">Forfeit</span>
+                                                {% elif match.result == 'forfeit_black' and match.black_player_id == player.id %}
+                                                    <span class="text-danger">Forfeit</span>
+                                                {% elif match.result == 'forfeit_white' and match.black_player_id == player.id %}
+                                                    <span class="text-success">Win by Forfeit</span>
+                                                {% elif match.result == 'forfeit_black' and match.white_player_id == player.id %}
+                                                    <span class="text-success">Win by Forfeit</span>
+                                                {% else %}
+                                                    <span class="text-muted">Unknown</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> You have no completed matches yet.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header card-header-secondary">
+                    <h3><i class="fas fa-chart-pie"></i> Statistics</h3>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="playerStatsChart" data-wins="{{ stats.wins }}" data-draws="{{ stats.draws }}" data-losses="{{ stats.losses }}"></canvas>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h5>Performance Summary</h5>
+                        <ul class="list-group">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Total Matches
+                                <span class="badge bg-primary rounded-pill">{{ stats.total }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Win Rate
+                                <span class="badge bg-success rounded-pill">{{ "%.1f"|format(stats.win_percentage) }}%</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header card-header-accent">
+                    <h3><i class="fas fa-trophy"></i> Tournaments</h3>
+                </div>
+                <div class="card-body">
+                    {% if tournaments %}
+                        <div class="list-group">
+                            {% for tournament in tournaments %}
+                                <a href="{{ url_for('tournament_view', tournament_id=tournament.id) }}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h5 class="mb-1">{{ tournament.name }}</h5>
+                                        <span class="tournament-status status-{{ tournament.status }}">
+                                            {{ tournament.status|replace('_', ' ')|title }}
+                                        </span>
+                                    </div>
+                                    <p class="mb-1">{{ tournament.description|truncate(60) if tournament.description else 'No description available' }}</p>
+                                    <small>
+                                        <i class="fas fa-calendar-alt"></i> 
+                                        {{ tournament.start_date.strftime('%d/%m/%Y') }}
+                                    </small>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> You are not participating in any tournaments yet.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
