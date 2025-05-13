@@ -171,3 +171,16 @@ class Match(db.Model):
         elif self.result == MatchResult.BLACK_WIN or self.result == MatchResult.FORFEIT_WHITE:
             return self.white_player_id
         return None
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'round': self.round,
+            'knockout_round': self.knockout_round,
+            'knockout_match_num': self.knockout_match_num,
+            'white_player': self.white_player.name if self.white_player else None,
+            'black_player': self.black_player.name if self.black_player else None,
+            'result': self.result,
+            'status': self.status,
+            'next_match_id': self.next_match_id
+        }

@@ -434,7 +434,7 @@
                                     <!-- Knockout Bracket Visualization -->
                                     <div id="tournamentBracket" 
                                          class="mb-4" 
-                                         data-matches='{{ knockout_matches|tojson }}' 
+                                         data-matches='{{ knockout_matches|map(attribute="to_dict")|list|tojson }}' 
                                          data-rounds='{{ knockout_matches|map(attribute='round')|list|max }}'>
                                     </div>
                                     
