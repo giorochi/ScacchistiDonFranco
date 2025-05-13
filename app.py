@@ -67,6 +67,6 @@ def load_user(user_id):
             return admin
     except ValueError:
         pass
-    
+
     # If not an admin, try to find a player with this code
     return Player.query.filter_by(access_code=user_id).first()
