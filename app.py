@@ -56,6 +56,8 @@ with app.app_context():
     logging.info("Database tables created")
 
 # Import user loader after models are defined
+from models import Admin, Player
+
 @login_manager.user_loader
 def load_user(user_id):
     # Check if this is an admin (admin IDs are integers)
