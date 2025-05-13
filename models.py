@@ -172,6 +172,7 @@ class Match(db.Model):
             return self.white_player_id
         return None
 
+    @property
     def to_dict(self):
         return {
             'id': self.id,
