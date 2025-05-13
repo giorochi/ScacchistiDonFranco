@@ -55,7 +55,18 @@ with app.app_context():
     logging.info("Database tables created")
 
 # Import user loader after models are defined
-from models import Admin, Player
+from flask_login import LoginManager
+from models import Admin, Player, Tournament, Group, Match, TournamentPlayer
+
+app = Flask(__name__)
+
+def init_db():
+    with app.app_context():
+        db.drop_all()
+        db.create_all()
+        app.logger.info("Database tables created")
+
+init_db()
 
 @login_manager.user_loader
 def load_user(user_id):
