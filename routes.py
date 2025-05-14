@@ -703,6 +703,22 @@ def admin_tournament_complete(tournament_id):
 
     return redirect(url_for('admin_tournament_detail', tournament_id=tournament_id))
 
+@app.route('/admin/tournament/<int:tournament_id>/player_codes')
+@login_required
+def admin_tournament_player_codes(tournament_id):
+    # Check if user is admin
+    if not hasattr(current_user, 'username'):
+        abort(403)
+        
+    tournament = Tournament.query.get_or_404(tournament_id)
+    tournament_players = TournamentPlayer.query.filter_by(tournament_id=tournament_id).join(
+        Player, TournamentPlayer.player_id == Player.id
+    ).order_by(Player.name).all()
+    
+    return render_template('admin/player_codes.html',
+                          tournament=tournament,
+                          tournament_players=tournament_players)
+
 # First time setup - create admin if none exists
 @app.route('/setup', methods=['GET', 'POST'])
 def setup():
