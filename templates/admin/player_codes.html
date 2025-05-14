@@ -1,0 +1,101 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}Codici Giocatori - {{ tournament.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h2><i class="fas fa-key"></i> Codici Giocatori - {{ tournament.name }}</h2>
+                    <a href="{{ url_for('admin_tournament_detail', tournament_id=tournament.id) }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Torna al Torneo
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info mb-4">
+                        <i class="fas fa-info-circle"></i> Questa pagina mostra tutti i codici di accesso dei giocatori registrati a questo torneo. È possibile stampare questa pagina per distribuire i codici.
+                    </div>
+                    
+                    <div class="print-options mb-4">
+                        <button onclick="window.print();" class="btn btn-primary">
+                            <i class="fas fa-print"></i> Stampa Codici
+                        </button>
+                    </div>
+                    
+                    <div class="row player-codes">
+                        {% for tp in tournament_players %}
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="card h-100 player-code-card">
+                                    <div class="card-header text-center">
+                                        <h5>{{ tournament.name }}</h5>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <h4 class="player-name mb-2">{{ tp.player.name }}</h4>
+                                        
+                                        <div class="access-code mt-3 p-2 border rounded bg-light">
+                                            <span class="fw-bold fs-4">{{ tp.player.access_code }}</span>
+                                        </div>
+                                        
+                                        <p class="mt-3 small text-muted">
+                                            Usa questo codice per accedere alle tue partite e visualizzare i risultati.
+                                            <br>
+                                            Visita la pagina principale e accedi con questo codice.
+                                        </p>
+                                    </div>
+                                    <div class="card-footer text-center">
+                                        <div class="row">
+                                            <div class="col-6 border-end">
+                                                <small>Gruppo:</small>
+                                                <div>{{ tp.group.name if tp.group else 'Non Assegnato' }}</div>
+                                            </div>
+                                            <div class="col-6">
+                                                <small>Rating:</small>
+                                                <div>{{ tp.player.rating if tp.player.rating else 'N/A' }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media print {
+        body {
+            background-color: white;
+            font-size: 12pt;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 100%;
+        }
+        
+        .no-print, .no-print * {
+            display: none !important;
+        }
+        
+        .navbar, .footer, .print-options, .alert {
+            display: none !important;
+        }
+        
+        .player-code-card {
+            border: 1px solid #000;
+            break-inside: avoid;
+            page-break-inside: avoid;
+            margin-bottom: 1cm;
+        }
+        
+        .card {
+            box-shadow: none !important;
+        }
+    }
+</style>
+{% endblock %}
