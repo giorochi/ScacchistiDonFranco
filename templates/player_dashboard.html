@@ -218,32 +218,133 @@
         <div class="col-lg-4">
             
             
-            <div class="card">
+            <div class="card mb-4">
                 <div class="card-header card-header-accent">
-                    <h3><i class="fas fa-trophy"></i> Tournaments</h3>
+                    <h3><i class="fas fa-trophy"></i> I miei Tornei</h3>
                 </div>
                 <div class="card-body">
                     {% if tournaments %}
-                        <div class="list-group">
+                        <div class="accordion" id="tournamentsAccordion">
                             {% for tournament in tournaments %}
-                                <a href="{{ url_for('tournament_view', tournament_id=tournament.id) }}" class="list-group-item list-group-item-action">
-                                    <div class="d-flex w-100 justify-content-between">
-                                        <h5 class="mb-1">{{ tournament.name }}</h5>
-                                        <span class="tournament-status status-{{ tournament.status }}">
-                                            {{ tournament.status|replace('_', ' ')|title }}
-                                        </span>
+                                {% set tp = tournament_players.get(tournament.id) %}
+                                <div class="accordion-item tournament-card mb-3">
+                                    <h2 class="accordion-header" id="heading{{ tournament.id }}">
+                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ tournament.id }}" aria-expanded="true" aria-controls="collapse{{ tournament.id }}">
+                                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                                <h5 class="mb-0">{{ tournament.name }}</h5>
+                                                <span class="tournament-status status-{{ tournament.status }} ms-2">
+                                                    {{ {'draft': 'In preparazione', 'group_stage': 'Fase a gironi', 'knockout_stage': 'Fase finale', 'completed': 'Completato'}[tournament.status] }}
+                                                </span>
+                                            </div>
+                                        </button>
+                                    </h2>
+                                    <div id="collapse{{ tournament.id }}" class="accordion-collapse collapse show" aria-labelledby="heading{{ tournament.id }}" data-bs-parent="#tournamentsAccordion">
+                                        <div class="accordion-body">
+                                            <div class="mb-3">
+                                                <p>{{ tournament.description|truncate(100) if tournament.description else 'Nessuna descrizione disponibile' }}</p>
+                                                <div class="d-flex justify-content-between">
+                                                    <small>
+                                                        <i class="fas fa-calendar-alt"></i> 
+                                                        {{ tournament.start_date.strftime('%d/%m/%Y') }} - {{ tournament.end_date.strftime('%d/%m/%Y') }}
+                                                    </small>
+                                                    <small>
+                                                        <i class="fas fa-map-marker-alt"></i> 
+                                                        {{ tournament.location or 'Luogo non specificato' }}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                            
+                                            {% if tp and tp.group_id %}
+                                                <div class="card mb-3 border-0 bg-light">
+                                                    <div class="card-body p-3">
+                                                        <h5 class="card-title">Il mio girone</h5>
+                                                        
+                                                        {% if tournament.status in ['group_stage', 'knockout_stage', 'completed'] and group_standings.get(tournament.id) %}
+                                                            {% set standings = group_standings.get(tournament.id) %}
+                                                            {% set my_standing = standings|selectattr('player_id', 'eq', player.id)|first %}
+                                                            {% set my_position = standings.index(my_standing) + 1 if my_standing in standings else 0 %}
+                                                            
+                                                            <h6>Gruppo {{ tp.group.name }}</h6>
+                                                            
+                                                            <div class="table-responsive">
+                                                                <table class="table table-sm standings-table">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th>Pos</th>
+                                                                            <th>Giocatore</th>
+                                                                            <th class="text-center">P</th>
+                                                                            <th class="text-center">Punti</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        {% for standing in standings %}
+                                                                            <tr class="player-row {% if standing.player_id == player.id %}highlighted{% endif %}">
+                                                                                <td>{{ loop.index }}</td>
+                                                                                <td>{{ standing.player.name }}</td>
+                                                                                <td class="text-center">{{ get_player_matches(tournament.id, standing.player_id)|length }}</td>
+                                                                                <td class="text-center fw-bold">{{ standing.points }}</td>
+                                                                            </tr>
+                                                                        {% endfor %}
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                            
+                                                            {% if tournament.status in ['knockout_stage', 'completed'] %}
+                                                                {% if tp.eliminated %}
+                                                                    <div class="qualification-status not-qualified mt-3">
+                                                                        <i class="fas fa-times-circle"></i> Non qualificato alla fase finale
+                                                                    </div>
+                                                                {% else %}
+                                                                    <div class="qualification-status qualified mt-3">
+                                                                        <i class="fas fa-check-circle"></i> Qualificato alla fase finale
+                                                                    </div>
+                                                                {% endif %}
+                                                            {% elif tournament.status == 'group_stage' %}
+                                                                {% if my_position <= tournament.knockout_players // tournament.group_count %}
+                                                                    <div class="qualification-status pending mt-3">
+                                                                        <i class="fas fa-clock"></i> Attualmente in posizione di qualificazione
+                                                                    </div>
+                                                                {% else %}
+                                                                    <div class="qualification-status pending mt-3">
+                                                                        <i class="fas fa-exclamation-circle"></i> Attualmente fuori dalla zona qualificazione
+                                                                    </div>
+                                                                {% endif %}
+                                                            {% endif %}
+                                                        {% else %}
+                                                            <div class="alert alert-info">
+                                                                <i class="fas fa-info-circle"></i> La fase a gironi non è ancora iniziata.
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                            
+                                            {% if tournament.status in ['knockout_stage', 'completed'] and not tp.eliminated %}
+                                                <div class="card border-0 bg-light">
+                                                    <div class="card-body p-3">
+                                                        <h5 class="card-title">Fase ad eliminazione diretta</h5>
+                                                        <div class="text-center mb-2">
+                                                            <a href="{{ url_for('tournament_view', tournament_id=tournament.id) }}" class="btn btn-sm btn-primary">
+                                                                <i class="fas fa-eye"></i> Visualizza il tabellone
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                            
+                                            <div class="text-end mt-3">
+                                                <a href="{{ url_for('tournament_view', tournament_id=tournament.id) }}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-trophy"></i> Visualizza torneo completo
+                                                </a>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <p class="mb-1">{{ tournament.description|truncate(60) if tournament.description else 'No description available' }}</p>
-                                    <small>
-                                        <i class="fas fa-calendar-alt"></i> 
-                                        {{ tournament.start_date.strftime('%d/%m/%Y') }}
-                                    </small>
-                                </a>
+                                </div>
                             {% endfor %}
                         </div>
                     {% else %}
                         <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i> You are not participating in any tournaments yet.
+                            <i class="fas fa-info-circle"></i> Non stai partecipando a nessun torneo.
                         </div>
                     {% endif %}
                 </div>

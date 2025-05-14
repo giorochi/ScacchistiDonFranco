@@ -76,9 +76,24 @@ def player_dashboard():
     if hasattr(current_user, 'username'):  # Admin check
         return redirect(url_for('admin_dashboard'))
 
-    # Get player's tournaments
-    tournament_players = TournamentPlayer.query.filter_by(player_id=current_user.id).all()
-    tournaments = [tp.tournament for tp in tournament_players]
+    # Get player's tournaments and tournament players
+    tournament_players_list = TournamentPlayer.query.filter_by(player_id=current_user.id).all()
+    tournaments = [tp.tournament for tp in tournament_players_list]
+    
+    # Create a dictionary of tournament_id -> tournament_player for easy access
+    tournament_players = {tp.tournament_id: tp for tp in tournament_players_list}
+    
+    # Get group standings for each tournament
+    group_standings = {}
+    
+    for tp in tournament_players_list:
+        if tp.group_id:
+            # Get all players in this group
+            players_in_group = TournamentPlayer.query.filter_by(
+                group_id=tp.group_id
+            ).order_by(TournamentPlayer.points.desc(), TournamentPlayer.tiebreak_score.desc()).all()
+            
+            group_standings[tp.tournament_id] = players_in_group
 
     # Get upcoming matches
     upcoming_matches = Match.query.filter(
@@ -124,12 +139,23 @@ def player_dashboard():
         'total': total_matches,
         'win_percentage': win_percentage
     }
-
+    
+    # Function to get player matches count for tournament standings
+    def get_player_matches(tournament_id, player_id):
+        return Match.query.filter(
+            Match.tournament_id == tournament_id,
+            (Match.white_player_id == player_id) | (Match.black_player_id == player_id),
+            Match.status == MatchStatus.COMPLETED
+        ).all()
+    
     return render_template('player_dashboard.html', 
                           player=current_user,
                           tournaments=tournaments,
+                          tournament_players=tournament_players,
                           upcoming_matches=upcoming_matches,
                           past_matches=past_matches,
+                          group_standings=group_standings,
+                          get_player_matches=get_player_matches,
                           stats=stats)
 
 @app.route('/tournament/<int:tournament_id>')

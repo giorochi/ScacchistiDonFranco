@@ -201,6 +201,13 @@
                                                 </button>
                                             </form>
                                             
+                                            <a href="{{ url_for('admin_tournament_chessboards', tournament_id=tournament.id) }}" class="btn btn-info btn-sm d-block w-100 mb-2">
+                                                <i class="fas fa-chess-board"></i> Gestisci Scacchiere
+                                            </a>
+                                            <a href="{{ url_for('admin_tournament_chessboards', tournament_id=tournament.id) }}" class="btn btn-info btn-sm d-block w-100 mb-2">
+                                                <i class="fas fa-chess-board"></i> Gestisci Scacchiere
+                                            </a>
+                                            
                                         {% elif tournament.status == 'completed' %}
                                             <!-- Actions for Completed Tournaments -->
                                             <div class="alert alert-success mb-2">
