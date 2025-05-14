@@ -1,0 +1,418 @@
+{% extends "layout.html" %}
+
+{% block title %}Gestione Scacchiere - {{ tournament.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Gestione Scacchiere - {{ tournament.name }}</h1>
+        <div>
+            <a href="{{ url_for('admin_tournament_detail', tournament_id=tournament.id) }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Torna al Torneo
+            </a>
+        </div>
+    </div>
+    
+    {% include 'admin/_messages.html' %}
+    
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">Crea Nuove Scacchiere</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{{ url_for('admin_tournament_create_chessboards', tournament_id=tournament.id) }}">
+                        <div class="mb-3">
+                            <label for="board_count" class="form-label">Numero di scacchiere</label>
+                            <input type="number" class="form-control" id="board_count" name="board_count" value="{{ tournament.board_count }}" min="1" max="100" required>
+                            <div class="form-text">Verranno generate scacchiere con codici univoci.</div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="reset_existing" name="reset_existing" value="1">
+                                <label class="form-check-label" for="reset_existing">Resetta scacchiere esistenti</label>
+                            </div>
+                            <div class="form-text text-danger">Attenzione: Questa operazione genererà nuovi codici per le scacchiere esistenti.</div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus-circle"></i> Genera Scacchiere
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">Assegna Partite alle Scacchiere</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{{ url_for('admin_tournament_assign_matches', tournament_id=tournament.id) }}">
+                        <div class="mb-3">
+                            <label for="round" class="form-label">Turno</label>
+                            <select class="form-control" id="round" name="round" required>
+                                <option value="">Seleziona turno...</option>
+                                {% for r in range(1, tournament.group_count + 1) %}
+                                <option value="{{ r }}">Turno {{ r }} - Fase a gironi</option>
+                                {% endfor %}
+                                {% if tournament.status == 'knockout_stage' or tournament.status == 'completed' %}
+                                <option value="quarterfinal">Quarti di finale</option>
+                                <option value="semifinal">Semifinali</option>
+                                <option value="final">Finale</option>
+                                <option value="third_place">Finale 3° posto</option>
+                                {% endif %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="auto_assign" name="auto_assign" value="1" checked>
+                                <label class="form-check-label" for="auto_assign">Assegnazione automatica</label>
+                            </div>
+                            <div class="form-text">Il sistema assegnerà automaticamente le scacchiere alle partite del turno selezionato.</div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="show_next_round" name="show_next_round" value="1">
+                                <label class="form-check-label" for="show_next_round">Mostra turno successivo</label>
+                            </div>
+                            <div class="form-text">Se selezionato, il sistema mostrerà le partite del turno successivo nelle scacchiere.</div>
+                        </div>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-chess-board"></i> Assegna Partite
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="card-title mb-0">Scacchiere Disponibili</h4>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="toggleActiveOnly" checked>
+                <label class="form-check-label" for="toggleActiveOnly">Mostra solo attive</label>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if chessboards %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Numero</th>
+                            <th>Codice di Accesso</th>
+                            <th>Modalità Display</th>
+                            <th>Stato</th>
+                            <th>Partita Corrente</th>
+                            <th>Ultimo Utilizzo</th>
+                            <th>Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for board in chessboards %}
+                        <tr class="chessboard-row {% if not board.is_active %}inactive-board{% endif %}">
+                            <td>{{ board.id }}</td>
+                            <td>{{ board.board_number }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <code class="me-2">{{ board.access_code }}</code>
+                                    <button class="btn btn-sm btn-outline-secondary copy-code" data-code="{{ board.access_code }}" title="Copia Codice">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge {% if board.display_mode == 'double' %}bg-info{% else %}bg-secondary{% endif %}">
+                                    {{ 'Doppia' if board.display_mode == 'double' else 'Singola' }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge {% if board.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                                    {{ 'Attiva' if board.is_active else 'Inattiva' }}
+                                </span>
+                            </td>
+                            <td>
+                                {% set current_match = board.matches|selectattr('status', 'in', ['scheduled', 'in_progress'])|list|first %}
+                                {% if current_match %}
+                                <a href="{{ url_for('admin_match_edit', match_id=current_match.id) }}" class="match-link">
+                                    {% if current_match.white_player and current_match.black_player %}
+                                    {{ current_match.white_player.name }} vs {{ current_match.black_player.name }}
+                                    {% else %}
+                                    Turno {{ current_match.round }} - {{ current_match.knockout_round|default('Gironi') }}
+                                    {% endif %}
+                                </a>
+                                {% else %}
+                                <span class="text-muted">Nessuna partita attiva</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if board.last_used %}
+                                {{ board.last_used.strftime('%d/%m/%Y %H:%M') }}
+                                {% else %}
+                                <span class="text-muted">Mai utilizzata</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('chessboard_view', code=board.access_code) }}" class="btn btn-sm btn-primary" target="_blank">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-info toggle-display-mode" data-board-id="{{ board.id }}" title="Cambia modalità display">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm {% if board.is_active %}btn-warning{% else %}btn-success{% endif %} toggle-active" data-board-id="{{ board.id }}" title="{{ 'Disattiva' if board.is_active else 'Attiva' }}">
+                                        <i class="fas {% if board.is_active %}fa-times{% else %}fa-check{% endif %}"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-secondary regenerate-code" data-board-id="{{ board.id }}" title="Rigenera codice">
+                                        <i class="fas fa-key"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-danger delete-board" data-board-id="{{ board.id }}" title="Elimina">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                Nessuna scacchiera generata per questo torneo. Usa il form sopra per creare scacchiere.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h4 class="card-title mb-0">Partite Non Assegnate</h4>
+        </div>
+        <div class="card-body">
+            {% set unassigned_matches = matches|selectattr('chessboard_id', 'none')|selectattr('status', 'in', ['scheduled', 'in_progress'])|list %}
+            {% if unassigned_matches %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Turno</th>
+                            <th>Fase</th>
+                            <th>Giocatore Bianco</th>
+                            <th>Giocatore Nero</th>
+                            <th>Stato</th>
+                            <th>Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for match in unassigned_matches %}
+                        <tr>
+                            <td>{{ match.id }}</td>
+                            <td>{{ match.round }}</td>
+                            <td>
+                                {% if match.group %}
+                                Gruppo {{ match.group.name }}
+                                {% elif match.knockout_round %}
+                                {{ match.knockout_round|capitalize }}
+                                {% endif %}
+                            </td>
+                            <td>{{ match.white_player.name if match.white_player else 'TBD' }}</td>
+                            <td>{{ match.black_player.name if match.black_player else 'TBD' }}</td>
+                            <td>
+                                <span class="badge {% if match.status == 'scheduled' %}bg-warning{% elif match.status == 'in_progress' %}bg-success{% else %}bg-info{% endif %}">
+                                    {{ {'scheduled': 'Programmata', 'in_progress': 'In corso', 'completed': 'Completata', 'cancelled': 'Annullata'}[match.status] }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('admin_match_edit', match_id=match.id) }}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-success assign-match" data-match-id="{{ match.id }}" data-bs-toggle="modal" data-bs-target="#assignMatchModal">
+                                        <i class="fas fa-chess-board"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-success">
+                Tutte le partite sono state assegnate alle scacchiere.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal for assigning match to chessboard -->
+<div class="modal fade" id="assignMatchModal" tabindex="-1" aria-labelledby="assignMatchModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="assignMatchModalLabel">Assegna Partita a Scacchiera</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="assignMatchForm" method="post" action="{{ url_for('admin_match_assign_board', tournament_id=tournament.id) }}">
+                <div class="modal-body">
+                    <input type="hidden" id="match_id" name="match_id" value="">
+                    <div class="mb-3">
+                        <label for="chessboard_id" class="form-label">Seleziona Scacchiera</label>
+                        <select class="form-control" id="chessboard_id" name="chessboard_id" required>
+                            <option value="">Seleziona scacchiera...</option>
+                            {% for board in chessboards|selectattr('is_active', 'eq', true)|list %}
+                            <option value="{{ board.id }}">Scacchiera {{ board.board_number }} ({{ board.access_code }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                    <button type="submit" class="btn btn-primary">Assegna</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle visibility of inactive boards
+        const toggleActiveOnly = document.getElementById('toggleActiveOnly');
+        const inactiveBoards = document.querySelectorAll('.inactive-board');
+        
+        toggleActiveOnly.addEventListener('change', function() {
+            inactiveBoards.forEach(board => {
+                board.style.display = this.checked ? 'none' : 'table-row';
+            });
+        });
+        
+        // Copy access code to clipboard
+        document.querySelectorAll('.copy-code').forEach(button => {
+            button.addEventListener('click', function() {
+                const code = this.getAttribute('data-code');
+                navigator.clipboard.writeText(code).then(() => {
+                    // Change icon temporarily to show success
+                    const icon = this.querySelector('i');
+                    icon.classList.remove('fa-copy');
+                    icon.classList.add('fa-check');
+                    setTimeout(() => {
+                        icon.classList.remove('fa-check');
+                        icon.classList.add('fa-copy');
+                    }, 1000);
+                });
+            });
+        });
+        
+        // Set match ID when opening modal
+        document.querySelectorAll('.assign-match').forEach(button => {
+            button.addEventListener('click', function() {
+                document.getElementById('match_id').value = this.getAttribute('data-match-id');
+            });
+        });
+        
+        // Toggle display mode (single/double)
+        document.querySelectorAll('.toggle-display-mode').forEach(button => {
+            button.addEventListener('click', function() {
+                const boardId = this.getAttribute('data-board-id');
+                // Send AJAX request to toggle display mode
+                fetch(`/admin/chessboard/${boardId}/toggle-display-mode`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Reload page to update UI
+                        location.reload();
+                    }
+                });
+            });
+        });
+        
+        // Toggle active status
+        document.querySelectorAll('.toggle-active').forEach(button => {
+            button.addEventListener('click', function() {
+                const boardId = this.getAttribute('data-board-id');
+                // Send AJAX request to toggle active status
+                fetch(`/admin/chessboard/${boardId}/toggle-active`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Reload page to update UI
+                        location.reload();
+                    }
+                });
+            });
+        });
+        
+        // Regenerate access code
+        document.querySelectorAll('.regenerate-code').forEach(button => {
+            button.addEventListener('click', function() {
+                if (confirm('Vuoi davvero rigenerare il codice di accesso? Il codice precedente non sarà più valido.')) {
+                    const boardId = this.getAttribute('data-board-id');
+                    // Send AJAX request to regenerate code
+                    fetch(`/admin/chessboard/${boardId}/regenerate-code`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Reload page to update UI
+                            location.reload();
+                        }
+                    });
+                }
+            });
+        });
+        
+        // Delete chessboard
+        document.querySelectorAll('.delete-board').forEach(button => {
+            button.addEventListener('click', function() {
+                if (confirm('Vuoi davvero eliminare questa scacchiera? Le partite assegnate diventeranno non assegnate.')) {
+                    const boardId = this.getAttribute('data-board-id');
+                    // Send AJAX request to delete board
+                    fetch(`/admin/chessboard/${boardId}/delete`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Reload page to update UI
+                            location.reload();
+                        }
+                    });
+                }
+            });
+        });
+        
+        // Initialize with current toggle state
+        if (toggleActiveOnly.checked) {
+            inactiveBoards.forEach(board => {
+                board.style.display = 'none';
+            });
+        }
+    });
+</script>
+{% endblock %}

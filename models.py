@@ -4,6 +4,7 @@ from flask_login import UserMixin
 from app import db
 import random
 import string
+import hashlib
 
 # Enum definitions
 class TournamentStatus:
@@ -127,6 +128,34 @@ class Group(db.Model):
         db.UniqueConstraint('tournament_id', 'name', name='unique_tournament_group'),
     )
 
+class Chessboard(db.Model):
+    __tablename__ = 'chessboards'
+    id = db.Column(db.Integer, primary_key=True)
+    tournament_id = db.Column(db.Integer, db.ForeignKey('tournaments.id', ondelete='CASCADE'), nullable=False)
+    board_number = db.Column(db.Integer, nullable=False)
+    access_code = db.Column(db.String(10), unique=True, nullable=False)
+    display_mode = db.Column(db.String(20), default='single')  # single, double
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    last_used = db.Column(db.DateTime, nullable=True)
+    
+    # Relationships
+    tournament = db.relationship('Tournament', backref=db.backref('chessboards', cascade='all, delete-orphan'))
+    matches = db.relationship('Match', backref='chessboard')
+    
+    @staticmethod
+    def generate_access_code():
+        """Generate a unique access code for a chessboard"""
+        while True:
+            code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+            if not Chessboard.query.filter_by(access_code=code).first():
+                return code
+    
+    # Unique constraint for board number within a tournament
+    __table_args__ = (
+        db.UniqueConstraint('tournament_id', 'board_number', name='unique_tournament_board'),
+    )
+
 class Match(db.Model):
     __tablename__ = 'matches'
     id = db.Column(db.Integer, primary_key=True)
@@ -134,6 +163,8 @@ class Match(db.Model):
     group_id = db.Column(db.Integer, db.ForeignKey('groups.id', ondelete='SET NULL'), nullable=True)  # Null for knockout matches
     round = db.Column(db.Integer, nullable=False)  # Round number (1, 2, 3, etc.)
     board_number = db.Column(db.Integer, nullable=True)  # Chessboard assignment
+    chessboard_id = db.Column(db.Integer, db.ForeignKey('chessboards.id', ondelete='SET NULL'), nullable=True)
+    show_next_round = db.Column(db.Boolean, default=False)  # Flag to show next round matches
     
     # Players
     white_player_id = db.Column(db.Integer, db.ForeignKey('players.id', ondelete='SET NULL'), nullable=True)
@@ -186,5 +217,6 @@ class Match(db.Model):
             'black_player_name': self.black_player.name if self.black_player else None,
             'result': self.result,
             'status': self.status,
-            'next_match_id': self.next_match_id
+            'next_match_id': self.next_match_id,
+            'board_code': self.chessboard.access_code if hasattr(self, 'chessboard') and self.chessboard else None
         }
