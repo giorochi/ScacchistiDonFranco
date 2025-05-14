@@ -3,413 +3,202 @@
 {% block title %}Scacchiera {{ chessboard.board_number }} - {{ tournament.name }}{% endblock %}
 
 {% block content %}
-<div class="chessboard-view">
-    <div class="container py-4">
-        {% if display_mode == 'double' %}
-        <div class="row">
-            <div class="col-md-6">
-                <!-- Primary board view - for white player -->
-                <div class="chessboard-display mb-4 white-perspective">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h2 class="mb-0">Scacchiera {{ chessboard.board_number }}</h2>
-                        <div class="board-code">Codice: <strong>{{ chessboard.access_code }}</strong></div>
-                    </div>
-                    
-                    <div class="card board-card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <div class="player-info white-player">
-                                <strong>{{ match.white_player.name if match.white_player else "In attesa..." }}</strong>
-                                <span class="badge bg-light text-dark">Bianco</span>
-                            </div>
-                            <div class="match-info text-center">
-                                <div class="round-info">Turno {{ match.round }}</div>
-                                <div class="group-info">
-                                    {% if match.group %}
-                                    Gruppo {{ match.group.name }}
-                                    {% elif match.knockout_round %}
-                                    {{ match.knockout_round|capitalize }}
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <div class="player-info black-player">
-                                <strong>{{ match.black_player.name if match.black_player else "In attesa..." }}</strong>
-                                <span class="badge bg-dark">Nero</span>
-                            </div>
+<div class="container-fluid py-4">
+    {% include 'admin/_messages.html' %}
+
+    {% if chessboard.display_mode == 'double' %}
+    <!-- Double board view -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="chessboard-display mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="mb-0">Scacchiera {{ chessboard.board_number }}</h2>
+                    <div class="board-code">Codice: <strong>{{ chessboard.access_code }}</strong></div>
+                </div>
+
+                <div class="card board-card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        {% if match %}
+                        <div class="player-info white-player">
+                            <strong>{{ match.white_player.name if match.white_player else "In attesa..." }}</strong>
+                            <span class="badge bg-light text-dark">Bianco</span>
                         </div>
-                        <div class="card-body">
-                            {% if match.status == 'in_progress' %}
-                            <div class="status-indicator active">Partita in corso</div>
-                            {% elif match.status == 'completed' %}
-                            <div class="status-indicator completed">Partita completata</div>
-                            <div class="result-display">
-                                <h3 class="text-center mb-3">Risultato</h3>
-                                {% if match.result == 'white_win' %}
-                                <div class="result white-win">Vittoria Bianco (1-0)</div>
-                                {% elif match.result == 'black_win' %}
-                                <div class="result black-win">Vittoria Nero (0-1)</div>
-                                {% elif match.result == 'draw' %}
-                                <div class="result draw">Patta (½-½)</div>
-                                {% elif match.result == 'forfeit_white' %}
-                                <div class="result forfeit">Forfait Bianco (0-1)</div>
-                                {% elif match.result == 'forfeit_black' %}
-                                <div class="result forfeit">Forfait Nero (1-0)</div>
-                                {% elif match.result == 'no_show' %}
-                                <div class="result no-show">Nessun Giocatore Presente</div>
+                        <div class="match-info text-center">
+                            <div class="round-info">Turno {{ match.round }}</div>
+                            <div class="group-info">
+                                {% if match.group %}
+                                Gruppo {{ match.group.name }}
+                                {% elif match.knockout_round %}
+                                {{ match.knockout_round|capitalize }}
                                 {% endif %}
                             </div>
-                            {% elif match.status == 'scheduled' %}
-                            <div class="status-indicator scheduled">Partita programmata</div>
-                            <form class="mt-4" id="startMatchForm" method="post" action="{{ url_for('chessboard_start_match', code=chessboard.access_code) }}">
-                                <div class="d-grid">
-                                    <button type="submit" class="btn btn-primary btn-lg">Inizia Partita</button>
-                                </div>
-                            </form>
-                            {% endif %}
-                            
-                            {% if match.status == 'in_progress' %}
-                            <div class="result-form mt-4">
-                                <h3 class="text-center mb-3">Inserisci Risultato</h3>
-                                <form method="post" action="{{ url_for('chessboard_submit_result', code=chessboard.access_code) }}">
-                                    <div class="form-group mb-3">
-                                        <label class="form-label">Seleziona risultato:</label>
-                                        <div class="d-flex flex-column gap-2">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="result" id="result_white_win" value="white_win" required>
-                                                <label class="form-check-label" for="result_white_win">
-                                                    Vittoria Bianco ({{ match.white_player.name if match.white_player }})
-                                                </label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="result" id="result_black_win" value="black_win">
-                                                <label class="form-check-label" for="result_black_win">
-                                                    Vittoria Nero ({{ match.black_player.name if match.black_player }})
-                                                </label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="result" id="result_draw" value="draw">
-                                                <label class="form-check-label" for="result_draw">
-                                                    Patta
-                                                </label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="result" id="result_forfeit_white" value="forfeit_white">
-                                                <label class="form-check-label" for="result_forfeit_white">
-                                                    Forfait Bianco
-                                                </label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="result" id="result_forfeit_black" value="forfeit_black">
-                                                <label class="form-check-label" for="result_forfeit_black">
-                                                    Forfait Nero
-                                                </label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="form-group mb-3">
-                                        <label for="notes" class="form-label">Note (opzionale):</label>
-                                        <textarea class="form-control" id="notes" name="notes" rows="2"></textarea>
-                                    </div>
-                                    <div class="d-grid gap-2">
-                                        <button type="submit" class="btn btn-success btn-lg">Invia Risultato</button>
-                                    </div>
-                                </form>
-                            </div>
-                            {% endif %}
                         </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <!-- Secondary board view - for black player (rotated) -->
-                <div class="chessboard-display mb-4 black-perspective">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h2 class="mb-0">Scacchiera {{ chessboard.board_number }}</h2>
-                        <div class="board-code">Codice: <strong>{{ chessboard.access_code }}</strong></div>
-                    </div>
-                    
-                    <div class="card board-card">
-                        <div class="card-header d-flex justify-content-between align-items-center rotate-180">
-                            <div class="player-info black-player">
-                                <strong>{{ match.black_player.name if match.black_player else "In attesa..." }}</strong>
-                                <span class="badge bg-dark">Nero</span>
-                            </div>
-                            <div class="match-info text-center">
-                                <div class="round-info">Turno {{ match.round }}</div>
-                                <div class="group-info">
-                                    {% if match.group %}
-                                    Gruppo {{ match.group.name }}
-                                    {% elif match.knockout_round %}
-                                    {{ match.knockout_round|capitalize }}
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <div class="player-info white-player">
-                                <strong>{{ match.white_player.name if match.white_player else "In attesa..." }}</strong>
-                                <span class="badge bg-light text-dark">Bianco</span>
-                            </div>
+                        <div class="player-info black-player">
+                            <strong>{{ match.black_player.name if match.black_player else "In attesa..." }}</strong>
+                            <span class="badge bg-dark">Nero</span>
                         </div>
-                        <div class="card-body rotate-180">
-                            <!-- Duplicated content but no forms in rotated view -->
-                            {% if match.status == 'in_progress' %}
-                            <div class="status-indicator active">Partita in corso</div>
-                            {% elif match.status == 'completed' %}
-                            <div class="status-indicator completed">Partita completata</div>
-                            <div class="result-display">
-                                <h3 class="text-center mb-3">Risultato</h3>
-                                {% if match.result == 'white_win' %}
-                                <div class="result white-win">Vittoria Bianco (1-0)</div>
-                                {% elif match.result == 'black_win' %}
-                                <div class="result black-win">Vittoria Nero (0-1)</div>
-                                {% elif match.result == 'draw' %}
-                                <div class="result draw">Patta (½-½)</div>
-                                {% elif match.result == 'forfeit_white' %}
-                                <div class="result forfeit">Forfait Bianco (0-1)</div>
-                                {% elif match.result == 'forfeit_black' %}
-                                <div class="result forfeit">Forfait Nero (1-0)</div>
-                                {% elif match.result == 'no_show' %}
-                                <div class="result no-show">Nessun Giocatore Presente</div>
-                                {% endif %}
-                            </div>
-                            {% elif match.status == 'scheduled' %}
-                            <div class="status-indicator scheduled">Partita programmata</div>
-                            {% endif %}
+                        {% else %}
+                        <div class="text-center w-100">
+                            <h4 class="mb-0">Nessuna partita in corso</h4>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% else %}
-        <!-- Single board view (default) -->
-        <div class="chessboard-display mb-4">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h2 class="mb-0">Scacchiera {{ chessboard.board_number }}</h2>
-                <div class="board-code">Codice: <strong>{{ chessboard.access_code }}</strong></div>
-            </div>
-            
-            <div class="card board-card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <div class="player-info white-player">
-                        <strong>{{ match.white_player.name if match.white_player else "In attesa..." }}</strong>
-                        <span class="badge bg-light text-dark">Bianco</span>
-                    </div>
-                    <div class="match-info text-center">
-                        <div class="round-info">Turno {{ match.round }}</div>
-                        <div class="group-info">
-                            {% if match.group %}
-                            Gruppo {{ match.group.name }}
-                            {% elif match.knockout_round %}
-                            {{ match.knockout_round|capitalize }}
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="player-info black-player">
-                        <strong>{{ match.black_player.name if match.black_player else "In attesa..." }}</strong>
-                        <span class="badge bg-dark">Nero</span>
-                    </div>
-                </div>
-                <div class="card-body">
-                    {% if match.status == 'in_progress' %}
-                    <div class="status-indicator active">Partita in corso</div>
-                    {% elif match.status == 'completed' %}
-                    <div class="status-indicator completed">Partita completata</div>
-                    <div class="result-display">
-                        <h3 class="text-center mb-3">Risultato</h3>
-                        {% if match.result == 'white_win' %}
-                        <div class="result white-win">Vittoria Bianco (1-0)</div>
-                        {% elif match.result == 'black_win' %}
-                        <div class="result black-win">Vittoria Nero (0-1)</div>
-                        {% elif match.result == 'draw' %}
-                        <div class="result draw">Patta (½-½)</div>
-                        {% elif match.result == 'forfeit_white' %}
-                        <div class="result forfeit">Forfait Bianco (0-1)</div>
-                        {% elif match.result == 'forfeit_black' %}
-                        <div class="result forfeit">Forfait Nero (1-0)</div>
-                        {% elif match.result == 'no_show' %}
-                        <div class="result no-show">Nessun Giocatore Presente</div>
                         {% endif %}
                     </div>
-                    {% elif match.status == 'scheduled' %}
-                    <div class="status-indicator scheduled">Partita programmata</div>
-                    <form class="mt-4" id="startMatchForm" method="post" action="{{ url_for('chessboard_start_match', code=chessboard.access_code) }}">
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg">Inizia Partita</button>
+
+                    <div class="card-body">
+                        {% if match %}
+                        {% if match.status == 'scheduled' %}
+                        <div class="text-center">
+                            <form method="post" action="{{ url_for('chessboard_start_match', code=chessboard.access_code) }}">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-play"></i> Inizia Partita
+                                </button>
+                            </form>
                         </div>
-                    </form>
-                    {% endif %}
-                    
-                    {% if match.status == 'in_progress' %}
-                    <div class="result-form mt-4">
-                        <h3 class="text-center mb-3">Inserisci Risultato</h3>
-                        <form method="post" action="{{ url_for('chessboard_submit_result', code=chessboard.access_code) }}">
-                            <div class="form-group mb-3">
-                                <label class="form-label">Seleziona risultato:</label>
-                                <div class="d-flex flex-column gap-2">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="result" id="result_white_win" value="white_win" required>
-                                        <label class="form-check-label" for="result_white_win">
-                                            Vittoria Bianco ({{ match.white_player.name if match.white_player }})
-                                        </label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="result" id="result_black_win" value="black_win">
-                                        <label class="form-check-label" for="result_black_win">
-                                            Vittoria Nero ({{ match.black_player.name if match.black_player }})
-                                        </label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="result" id="result_draw" value="draw">
-                                        <label class="form-check-label" for="result_draw">
-                                            Patta
-                                        </label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="result" id="result_forfeit_white" value="forfeit_white">
-                                        <label class="form-check-label" for="result_forfeit_white">
-                                            Forfait Bianco
-                                        </label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="result" id="result_forfeit_black" value="forfeit_black">
-                                        <label class="form-check-label" for="result_forfeit_black">
-                                            Forfait Nero
-                                        </label>
-                                    </div>
+                        {% elif match.status == 'in_progress' %}
+                        <div class="text-center">
+                            <form method="post" action="{{ url_for('chessboard_submit_result', code=chessboard.access_code) }}" class="match-result-form">
+                                <div class="form-group mb-3">
+                                    <label for="result" class="form-label">Risultato della Partita</label>
+                                    <select class="form-select" id="result" name="result" required>
+                                        <option value="">Seleziona risultato...</option>
+                                        <option value="white_win">Vittoria Bianco (1-0)</option>
+                                        <option value="black_win">Vittoria Nero (0-1)</option>
+                                        <option value="draw">Patta (½-½)</option>
+                                        <option value="forfeit_white">Forfait Bianco (0-1)</option>
+                                        <option value="forfeit_black">Forfait Nero (1-0)</option>
+                                        <option value="no_show">Nessun Giocatore Presente</option>
+                                    </select>
                                 </div>
-                            </div>
-                            <div class="form-group mb-3">
-                                <label for="notes" class="form-label">Note (opzionale):</label>
-                                <textarea class="form-control" id="notes" name="notes" rows="2"></textarea>
-                            </div>
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-success btn-lg">Invia Risultato</button>
-                            </div>
-                        </form>
+                                <div class="form-group mb-3">
+                                    <label for="notes" class="form-label">Note (opzionale)</label>
+                                    <textarea class="form-control" id="notes" name="notes" rows="2"></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="fas fa-flag-checkered"></i> Termina Partita
+                                </button>
+                            </form>
+                        </div>
+                        {% endif %}
+                        {% endif %}
                     </div>
-                    {% endif %}
                 </div>
             </div>
         </div>
-        {% endif %}
-        
-        <div class="mt-4 text-center">
-            <a href="{{ url_for('index') }}" class="btn btn-secondary">
-                <i class="fas fa-home"></i> Torna alla Home
-            </a>
-            {% if match and match.status == 'completed' %}
-            <a href="{{ url_for('tournament_view', tournament_id=tournament.id) }}" class="btn btn-primary">
-                <i class="fas fa-trophy"></i> Visualizza Torneo
-            </a>
-            {% endif %}
+
+        <div class="col-md-6">
+            <div class="chessboard-display mb-4 rotate-180">
+                <!-- Mirrored content for the other side -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="mb-0">Scacchiera {{ chessboard.board_number }}</h2>
+                    <div class="board-code">Codice: <strong>{{ chessboard.access_code }}</strong></div>
+                </div>
+
+                <div class="card board-card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        {% if match %}
+                        <div class="player-info black-player">
+                            <strong>{{ match.black_player.name if match.black_player else "In attesa..." }}</strong>
+                            <span class="badge bg-dark">Nero</span>
+                        </div>
+                        <div class="match-info text-center">
+                            <div class="round-info">Turno {{ match.round }}</div>
+                            <div class="group-info">
+                                {% if match.group %}
+                                Gruppo {{ match.group.name }}
+                                {% elif match.knockout_round %}
+                                {{ match.knockout_round|capitalize }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="player-info white-player">
+                            <strong>{{ match.white_player.name if match.white_player else "In attesa..." }}</strong>
+                            <span class="badge bg-light text-dark">Bianco</span>
+                        </div>
+                        {% else %}
+                        <div class="text-center w-100">
+                            <h4 class="mb-0">Nessuna partita in corso</h4>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-</div>
-{% endblock %}
+    {% else %}
+    <!-- Single board view -->
+    <div class="chessboard-display mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="mb-0">Scacchiera {{ chessboard.board_number }}</h2>
+            <div class="board-code">Codice: <strong>{{ chessboard.access_code }}</strong></div>
+        </div>
 
-{% block styles %}
-<style>
-    .chessboard-display {
-        max-width: 800px;
-        margin: 0 auto;
-    }
-    
-    .board-card {
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    
-    .card-header {
-        background-color: #f8f9fa;
-        border-bottom: 1px solid #ddd;
-    }
-    
-    .player-info {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 10px;
-    }
-    
-    .player-info.black-player {
-        align-items: flex-end;
-    }
-    
-    .player-info .badge {
-        margin-top: 5px;
-    }
-    
-    .status-indicator {
-        text-align: center;
-        padding: 10px;
-        border-radius: 4px;
-        font-weight: bold;
-        margin-bottom: 20px;
-    }
-    
-    .status-indicator.active {
-        background-color: #d4edda;
-        color: #155724;
-    }
-    
-    .status-indicator.completed {
-        background-color: #cce5ff;
-        color: #004085;
-    }
-    
-    .status-indicator.scheduled {
-        background-color: #fff3cd;
-        color: #856404;
-    }
-    
-    .result-display {
-        padding: 20px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        margin-top: 20px;
-    }
-    
-    .result {
-        text-align: center;
-        font-size: 24px;
-        font-weight: bold;
-        padding: 10px;
-        border-radius: 4px;
-    }
-    
-    .result.white-win {
-        background-color: #f8f9fa;
-        color: #212529;
-    }
-    
-    .result.black-win {
-        background-color: #343a40;
-        color: #fff;
-    }
-    
-    .result.draw {
-        background-color: #e9ecef;
-        color: #495057;
-    }
-    
-    .result.forfeit, .result.no-show {
-        background-color: #f8d7da;
-        color: #721c24;
-    }
-    
-    .board-code {
-        background-color: #f8f9fa;
-        padding: 5px 10px;
-        border-radius: 4px;
-        border: 1px solid #ddd;
-    }
-    
-    /* Styles for rotated view in double mode */
-    .rotate-180 {
-        transform: rotate(180deg);
-    }
-    
-    .black-perspective .card-body {
-        min-height: 350px;
-    }
-</style>
+        <div class="card board-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                {% if match %}
+                <div class="player-info white-player">
+                    <strong>{{ match.white_player.name if match.white_player else "In attesa..." }}</strong>
+                    <span class="badge bg-light text-dark">Bianco</span>
+                </div>
+                <div class="match-info text-center">
+                    <div class="round-info">Turno {{ match.round }}</div>
+                    <div class="group-info">
+                        {% if match.group %}
+                        Gruppo {{ match.group.name }}
+                        {% elif match.knockout_round %}
+                        {{ match.knockout_round|capitalize }}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="player-info black-player">
+                    <strong>{{ match.black_player.name if match.black_player else "In attesa..." }}</strong>
+                    <span class="badge bg-dark">Nero</span>
+                </div>
+                {% else %}
+                <div class="text-center w-100">
+                    <h4 class="mb-0">Nessuna partita in corso</h4>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="card-body">
+                {% if match %}
+                {% if match.status == 'scheduled' %}
+                <div class="text-center">
+                    <form method="post" action="{{ url_for('chessboard_start_match', code=chessboard.access_code) }}">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-play"></i> Inizia Partita
+                        </button>
+                    </form>
+                </div>
+                {% elif match.status == 'in_progress' %}
+                <div class="text-center">
+                    <form method="post" action="{{ url_for('chessboard_submit_result', code=chessboard.access_code) }}" class="match-result-form">
+                        <div class="form-group mb-3">
+                            <label for="result" class="form-label">Risultato della Partita</label>
+                            <select class="form-select" id="result" name="result" required>
+                                <option value="">Seleziona risultato...</option>
+                                <option value="white_win">Vittoria Bianco (1-0)</option>
+                                <option value="black_win">Vittoria Nero (0-1)</option>
+                                <option value="draw">Patta (½-½)</option>
+                                <option value="forfeit_white">Forfait Bianco (0-1)</option>
+                                <option value="forfeit_black">Forfait Nero (1-0)</option>
+                                <option value="no_show">Nessun Giocatore Presente</option>
+                            </select>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="notes" class="form-label">Note (opzionale)</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="2"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-flag-checkered"></i> Termina Partita
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
 {% endblock %}
