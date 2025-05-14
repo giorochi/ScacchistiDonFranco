@@ -259,7 +259,7 @@
                 <h5 class="modal-title" id="assignMatchModalLabel">Assegna Partita a Scacchiera</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="assignMatchForm" method="post" action="{{ url_for('admin_match_assign_board', tournament_id=tournament.id) }}">
+            <form id="assignMatchForm" method="post" action="{{ url_for('admin_match_assign_board', match_id=0) }}">
                 <div class="modal-body">
                     <input type="hidden" id="match_id" name="match_id" value="">
                     <div class="mb-3">
@@ -315,7 +315,9 @@
         // Set match ID when opening modal
         document.querySelectorAll('.assign-match').forEach(button => {
             button.addEventListener('click', function() {
-                document.getElementById('match_id').value = this.getAttribute('data-match-id');
+                const matchId = this.getAttribute('data-match-id');
+document.getElementById('match_id').value = matchId;
+document.getElementById('assignMatchForm').action = `/admin/match/${matchId}/assign_board`;
             });
         });
         
