@@ -2,7 +2,7 @@ from flask import render_template, redirect, url_for, flash, request, jsonify, s
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import app, db
-from models import Admin, Player, Tournament, TournamentPlayer, Group, Match, TournamentStatus, MatchStatus, MatchResult
+from models import Admin, Player, Tournament, TournamentPlayer, Group, Match, Chessboard, TournamentStatus, MatchStatus, MatchResult
 import tournament_logic
 from datetime import datetime
 import string
@@ -702,3 +702,308 @@ def setup():
         return redirect(url_for('login'))
 
     return render_template('setup.html')
+
+
+# Chessboard routes
+@app.route('/chessboard/<code>')
+def chessboard_view(code):
+    chessboard = Chessboard.query.filter_by(access_code=code).first_or_404()
+    tournament = chessboard.tournament
+    
+    # Find active match for this board
+    match = Match.query.filter_by(
+        chessboard_id=chessboard.id,
+        status=MatchStatus.IN_PROGRESS
+    ).first()
+    
+    if not match:
+        # Find scheduled match
+        match = Match.query.filter_by(
+            chessboard_id=chessboard.id,
+            status=MatchStatus.SCHEDULED
+        ).first()
+    
+    # Set last used timestamp
+    chessboard.last_used = datetime.now()
+    db.session.commit()
+    
+    return render_template('chessboard.html', 
+                         chessboard=chessboard,
+                         tournament=tournament,
+                         match=match,
+                         display_mode=chessboard.display_mode)
+
+@app.route('/chessboard/<code>/start_match', methods=['POST'])
+def chessboard_start_match(code):
+    chessboard = Chessboard.query.filter_by(access_code=code).first_or_404()
+    
+    # Find scheduled match for this board
+    match = Match.query.filter_by(
+        chessboard_id=chessboard.id,
+        status=MatchStatus.SCHEDULED
+    ).first()
+    
+    if not match:
+        flash('No scheduled match found for this board', 'danger')
+        return redirect(url_for('chessboard_view', code=code))
+    
+    # Update match status
+    match.status = MatchStatus.IN_PROGRESS
+    match.start_time = datetime.now()
+    
+    db.session.commit()
+    
+    flash('Partita avviata!', 'success')
+    return redirect(url_for('chessboard_view', code=code))
+
+@app.route('/chessboard/<code>/submit_result', methods=['POST'])
+def chessboard_submit_result(code):
+    chessboard = Chessboard.query.filter_by(access_code=code).first_or_404()
+    
+    # Find active match for this board
+    match = Match.query.filter_by(
+        chessboard_id=chessboard.id,
+        status=MatchStatus.IN_PROGRESS
+    ).first()
+    
+    if not match:
+        flash('No active match found for this board', 'danger')
+        return redirect(url_for('chessboard_view', code=code))
+    
+    result = request.form.get('result')
+    notes = request.form.get('notes')
+    
+    if not result:
+        flash('Please select a result', 'danger')
+        return redirect(url_for('chessboard_view', code=code))
+    
+    # Update match result
+    match.result = result
+    match.notes = notes
+    match.status = MatchStatus.COMPLETED
+    
+    # Set scores based on result
+    if result == MatchResult.WHITE_WIN or result == MatchResult.FORFEIT_BLACK:
+        match.white_score = 1.0
+        match.black_score = 0.0
+    elif result == MatchResult.BLACK_WIN or result == MatchResult.FORFEIT_WHITE:
+        match.white_score = 0.0
+        match.black_score = 1.0
+    elif result == MatchResult.DRAW:
+        match.white_score = 0.5
+        match.black_score = 0.5
+    else:  # No show
+        match.white_score = 0.0
+        match.black_score = 0.0
+    
+    db.session.commit()
+    
+    # Update tournament standings
+    if match.group_id:  # Group stage match
+        tournament_logic.update_group_standings(match.tournament_id)
+    elif match.knockout_round:  # Knockout stage match
+        tournament_logic.advance_knockout_player(match.id)
+    
+    flash('Risultato registrato con successo!', 'success')
+    return redirect(url_for('chessboard_view', code=code))
+
+# Admin chessboard management routes
+@app.route('/admin/tournament/<int:tournament_id>/chessboards')
+@login_required
+def admin_tournament_chessboards(tournament_id):
+    # Check if user is admin
+    if not hasattr(current_user, 'username'):
+        abort(403)
+    
+    tournament = Tournament.query.get_or_404(tournament_id)
+    chessboards = Chessboard.query.filter_by(tournament_id=tournament_id).order_by(Chessboard.board_number).all()
+    matches = Match.query.filter_by(tournament_id=tournament_id).all()
+    
+    return render_template('admin/chessboards.html',
+                          tournament=tournament,
+                          chessboards=chessboards,
+                          matches=matches)
+
+@app.route('/admin/tournament/<int:tournament_id>/create_chessboards', methods=['POST'])
+@login_required
+def admin_tournament_create_chessboards(tournament_id):
+    # Check if user is admin
+    if not hasattr(current_user, 'username'):
+        abort(403)
+    
+    tournament = Tournament.query.get_or_404(tournament_id)
+    board_count = int(request.form.get('board_count', tournament.board_count))
+    reset_existing = request.form.get('reset_existing') == '1'
+    
+    # Update tournament board count
+    tournament.board_count = board_count
+    
+    if reset_existing:
+        # Delete existing chessboards
+        Chessboard.query.filter_by(tournament_id=tournament_id).delete()
+    
+    # Create new chessboards if needed
+    existing_boards = Chessboard.query.filter_by(tournament_id=tournament_id).count()
+    
+    for i in range(existing_boards + 1, board_count + 1):
+        board = Chessboard(
+            tournament_id=tournament_id,
+            board_number=i,
+            access_code=Chessboard.generate_access_code(),
+            display_mode='single',
+            is_active=True
+        )
+        db.session.add(board)
+    
+    db.session.commit()
+    
+    flash(f'Scacchiere generate con successo: {board_count}', 'success')
+    return redirect(url_for('admin_tournament_chessboards', tournament_id=tournament_id))
+
+@app.route('/admin/tournament/<int:tournament_id>/assign_matches', methods=['POST'])
+@login_required
+def admin_tournament_assign_matches(tournament_id):
+    # Check if user is admin
+    if not hasattr(current_user, 'username'):
+        abort(403)
+    
+    tournament = Tournament.query.get_or_404(tournament_id)
+    round_value = request.form.get('round')
+    auto_assign = request.form.get('auto_assign') == '1'
+    show_next_round = request.form.get('show_next_round') == '1'
+    
+    if not round_value:
+        flash('Seleziona un turno', 'warning')
+        return redirect(url_for('admin_tournament_chessboards', tournament_id=tournament_id))
+    
+    # Get active chessboards
+    chessboards = Chessboard.query.filter_by(
+        tournament_id=tournament_id,
+        is_active=True
+    ).order_by(Chessboard.board_number).all()
+    
+    if not chessboards:
+        flash('No active chessboards available', 'warning')
+        return redirect(url_for('admin_tournament_chessboards', tournament_id=tournament_id))
+    
+    # Get matches for the selected round
+    if round_value.isdigit():
+        # Group stage round
+        matches = Match.query.filter_by(
+            tournament_id=tournament_id,
+            round=int(round_value),
+            status=MatchStatus.SCHEDULED
+        ).order_by(Match.group_id).all()
+    else:
+        # Knockout round
+        matches = Match.query.filter_by(
+            tournament_id=tournament_id,
+            knockout_round=round_value,
+            status=MatchStatus.SCHEDULED
+        ).order_by(Match.knockout_match_num).all()
+    
+    if not matches:
+        flash('No matches found for the selected round', 'warning')
+        return redirect(url_for('admin_tournament_chessboards', tournament_id=tournament_id))
+    
+    # Clear any previous assignments for these matches
+    for match in matches:
+        match.chessboard_id = None
+        match.show_next_round = show_next_round
+    
+    if auto_assign:
+        # Auto assign matches to boards
+        for i, match in enumerate(matches):
+            if i < len(chessboards):
+                match.chessboard_id = chessboards[i].id
+            else:
+                break
+    
+    db.session.commit()
+    
+    flash(f'Partite assegnate alle scacchiere: {min(len(matches), len(chessboards))}', 'success')
+    return redirect(url_for('admin_tournament_chessboards', tournament_id=tournament_id))
+
+@app.route('/admin/match/<int:match_id>/assign_board', methods=['POST'])
+@login_required
+def admin_match_assign_board(match_id):
+    # Check if user is admin
+    if not hasattr(current_user, 'username'):
+        abort(403)
+    
+    match = Match.query.get_or_404(match_id)
+    chessboard_id = request.form.get('chessboard_id')
+    
+    if not chessboard_id:
+        flash('Please select a chessboard', 'warning')
+        return redirect(url_for('admin_tournament_chessboards', tournament_id=match.tournament_id))
+    
+    # Assign match to board
+    match.chessboard_id = chessboard_id
+    db.session.commit()
+    
+    flash('Match assigned to chessboard successfully', 'success')
+    return redirect(url_for('admin_tournament_chessboards', tournament_id=match.tournament_id))
+
+@app.route('/admin/chessboard/<int:board_id>/toggle-display-mode', methods=['POST'])
+@login_required
+def admin_chessboard_toggle_display_mode(board_id):
+    # Check if user is admin
+    if not hasattr(current_user, 'username'):
+        abort(403)
+    
+    board = Chessboard.query.get_or_404(board_id)
+    
+    # Toggle display mode between single and double
+    board.display_mode = 'double' if board.display_mode == 'single' else 'single'
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
+@app.route('/admin/chessboard/<int:board_id>/toggle-active', methods=['POST'])
+@login_required
+def admin_chessboard_toggle_active(board_id):
+    # Check if user is admin
+    if not hasattr(current_user, 'username'):
+        abort(403)
+    
+    board = Chessboard.query.get_or_404(board_id)
+    
+    # Toggle active status
+    board.is_active = not board.is_active
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
+@app.route('/admin/chessboard/<int:board_id>/regenerate-code', methods=['POST'])
+@login_required
+def admin_chessboard_regenerate_code(board_id):
+    # Check if user is admin
+    if not hasattr(current_user, 'username'):
+        abort(403)
+    
+    board = Chessboard.query.get_or_404(board_id)
+    
+    # Generate new access code
+    board.access_code = Chessboard.generate_access_code()
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
+@app.route('/admin/chessboard/<int:board_id>/delete', methods=['POST'])
+@login_required
+def admin_chessboard_delete(board_id):
+    # Check if user is admin
+    if not hasattr(current_user, 'username'):
+        abort(403)
+    
+    board = Chessboard.query.get_or_404(board_id)
+    
+    # Clear chessboard_id from associated matches
+    Match.query.filter_by(chessboard_id=board_id).update({Match.chessboard_id: None})
+    
+    # Delete the chessboard
+    db.session.delete(board)
+    db.session.commit()
+    
+    return jsonify({'success': True})
