@@ -207,6 +207,57 @@
                                                         data-points='{{ player_points|tojson }}'>
                                                     </canvas>
                                                 </div>
+                                                
+                                                <!-- Group Matches -->
+                                                {% if group_matches and group_matches[group.id] %}
+                                                    <h5 class="mt-4">Partite del Girone</h5>
+                                                    <div class="table-container">
+                                                        <table class="table table-sm">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Round</th>
+                                                                    <th>Bianco</th>
+                                                                    <th>Nero</th>
+                                                                    <th>Risultato</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {% for match in group_matches[group.id] %}
+                                                                    <tr>
+                                                                        <td>{{ match.round }}</td>
+                                                                        <td>
+                                                                            {{ match.white_player.name if match.white_player else 'TBD' }}
+                                                                            {% if current_user.is_authenticated and not current_user.username is defined and current_user.id == match.white_player_id %}
+                                                                                <span class="badge bg-primary">You</span>
+                                                                            {% endif %}
+                                                                        </td>
+                                                                        <td>
+                                                                            {{ match.black_player.name if match.black_player else 'TBD' }}
+                                                                            {% if current_user.is_authenticated and not current_user.username is defined and current_user.id == match.black_player_id %}
+                                                                                <span class="badge bg-primary">You</span>
+                                                                            {% endif %}
+                                                                        </td>
+                                                                        <td>
+                                                                            {% if match.status == 'completed' %}
+                                                                                {% if match.result == 'white_win' %}
+                                                                                    1-0
+                                                                                {% elif match.result == 'black_win' %}
+                                                                                    0-1
+                                                                                {% elif match.result == 'draw' %}
+                                                                                    ½-½
+                                                                                {% else %}
+                                                                                    {{ match.result }}
+                                                                                {% endif %}
+                                                                            {% else %}
+                                                                                {{ match.status }}
+                                                                            {% endif %}
+                                                                        </td>
+                                                                    </tr>
+                                                                {% endfor %}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                {% endif %}
                                             {% else %}
                                                 <div class="alert alert-info">
                                                     <i class="fas fa-info-circle"></i> No standings available for this group.

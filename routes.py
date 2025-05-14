@@ -165,11 +165,19 @@ def tournament_view(tournament_id):
     # Get groups and standings
     groups = Group.query.filter_by(tournament_id=tournament_id).all()
     group_standings = {}
+    group_matches = {}
 
     for group in groups:
         players = TournamentPlayer.query.filter_by(group_id=group.id)\
             .order_by(TournamentPlayer.points.desc(), TournamentPlayer.tiebreak_score.desc()).all()
         group_standings[group.id] = players
+        
+        # Get matches for this group
+        matches = Match.query.filter_by(
+            tournament_id=tournament_id,
+            group_id=group.id
+        ).order_by(Match.round).all()
+        group_matches[group.id] = matches
 
     # Get knockout matches if in knockout stage
     knockout_matches = None
@@ -183,6 +191,7 @@ def tournament_view(tournament_id):
                           tournament=tournament,
                           groups=groups,
                           group_standings=group_standings,
+                          group_matches=group_matches,
                           knockout_matches=knockout_matches)
 
 # Admin routes
