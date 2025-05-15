@@ -29,7 +29,10 @@ app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:/
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     'pool_pre_ping': True,
-    "pool_recycle": 300,
+    'pool_recycle': 300,
+    'pool_timeout': 30,
+    'pool_size': 10,
+    'max_overflow': 5
 }
 
 # Initialize database
