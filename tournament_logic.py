@@ -365,8 +365,8 @@ def generate_knockout_matches(tournament_id):
 def advance_knockout_player(match_id):
     """Advance the winner of a knockout match to the next match"""
     match = Match.query.get(match_id)
-    if not match or not match.next_match_id:
-        return False, "Match not found or no next match"
+    if not match:
+        return False, "Match not found"
     
     if match.status != MatchStatus.COMPLETED:
         return False, "Match not completed yet"
@@ -375,18 +375,52 @@ def advance_knockout_player(match_id):
     if not winner_id:
         return False, "No winner determined"
     
-    next_match = Match.query.get(match.next_match_id)
-    if not next_match:
-        return False, "Next match not found"
+    # Gestione speciale per le semifinali
+    if match.knockout_round == "semifinal":
+        # Trova o crea la finale
+        final_match = Match.query.filter_by(
+            tournament_id=match.tournament_id,
+            knockout_round="final"
+        ).first()
+        
+        if not final_match:
+            # Crea la finale se non esiste
+            final_match = Match(
+                tournament_id=match.tournament_id,
+                round=match.round + 1,
+                knockout_round="final",
+                knockout_match_num=1,
+                status=MatchStatus.SCHEDULED,
+                start_time=match.start_time
+            )
+            db.session.add(final_match)
+            db.session.flush()
+        
+        # Assegna il vincitore alla posizione corretta nella finale
+        prev_matches = Match.query.filter_by(
+            tournament_id=match.tournament_id,
+            knockout_round="semifinal"
+        ).order_by(Match.knockout_match_num).all()
+        
+        match_index = prev_matches.index(match)
+        if match_index == 0:
+            final_match.white_player_id = winner_id
+        else:
+            final_match.black_player_id = winner_id
     
-    # Determine if the winner should be white or black in the next match
-    prev_matches = Match.query.filter_by(next_match_id=next_match.id).order_by(Match.id).all()
-    match_index = prev_matches.index(match)
-    
-    if match_index % 2 == 0:  # First match feeds into white position
-        next_match.white_player_id = winner_id
-    else:  # Second match feeds into black position
-        next_match.black_player_id = winner_id
+    elif match.next_match_id:
+        # Gestione normale per altri turni
+        next_match = Match.query.get(match.next_match_id)
+        if not next_match:
+            return False, "Next match not found"
+        
+        prev_matches = Match.query.filter_by(next_match_id=next_match.id).order_by(Match.id).all()
+        match_index = prev_matches.index(match)
+        
+        if match_index % 2 == 0:
+            next_match.white_player_id = winner_id
+        else:
+            next_match.black_player_id = winner_id
     
     db.session.commit()
     return True, "Winner advanced to next match"
