@@ -377,36 +377,43 @@ def advance_knockout_player(match_id):
     
     # Gestione speciale per le semifinali
     if match.knockout_round == "semifinal":
-        # Trova o crea la finale
+        # Trova la finale esistente o creane una nuova
         final_match = Match.query.filter_by(
             tournament_id=match.tournament_id,
             knockout_round="final"
         ).first()
         
         if not final_match:
-            # Crea la finale se non esiste
+            # Crea un nuovo match per la finale
             final_match = Match(
                 tournament_id=match.tournament_id,
                 round=match.round + 1,
                 knockout_round="final",
                 knockout_match_num=1,
                 status=MatchStatus.SCHEDULED,
-                start_time=match.start_time
+                start_time=match.start_time + timedelta(hours=1)
             )
             db.session.add(final_match)
-            db.session.flush()
         
-        # Assegna il vincitore alla posizione corretta nella finale
-        prev_matches = Match.query.filter_by(
+        # Trova tutte le semifinali
+        semifinal_matches = Match.query.filter_by(
             tournament_id=match.tournament_id,
             knockout_round="semifinal"
         ).order_by(Match.knockout_match_num).all()
         
-        match_index = prev_matches.index(match)
-        if match_index == 0:
+        # Determina la posizione del vincitore (bianco/nero) nella finale
+        is_first_semifinal = semifinal_matches[0].id == match.id
+        
+        if is_first_semifinal:
             final_match.white_player_id = winner_id
         else:
             final_match.black_player_id = winner_id
+            
+        # Se entrambi i giocatori sono stati assegnati, imposta lo stato su SCHEDULED
+        if final_match.white_player_id and final_match.black_player_id:
+            final_match.status = MatchStatus.SCHEDULED
+            
+        db.session.flush()
     
     elif match.next_match_id:
         # Gestione normale per altri turni
