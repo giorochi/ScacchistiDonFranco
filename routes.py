@@ -15,6 +15,11 @@ def index():
     tournaments = Tournament.query.order_by(Tournament.start_date.desc()).limit(5).all()
     return render_template('index.html', tournaments=tournaments)
 
+@app.route('/statistics')
+def tournament_statistics():
+    tournaments = Tournament.query.order_by(Tournament.name).all()
+    return render_template('tournament_statistics.html', tournaments=tournaments)
+
 # Error handlers
 @app.errorhandler(404)
 def page_not_found(e):
