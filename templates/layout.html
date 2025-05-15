@@ -46,6 +46,23 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('index') }}">Home</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('tournament_statistics') }}">
+                            <i class="fas fa-chart-bar"></i> Statistiche
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="galleryDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-images"></i> Galleria
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="galleryDropdown">
+                            {% for tournament in get_tournaments() %}
+                            <a class="dropdown-item" href="{{ url_for('gallery_view', tournament_id=tournament.id) }}">
+                                {{ tournament.name }}
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </li>
                     {% if current_user.is_authenticated %}
                         {% if current_user.username is defined %}
                             <!-- Admin Navigation -->
