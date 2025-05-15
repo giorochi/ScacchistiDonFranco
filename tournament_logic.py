@@ -278,7 +278,7 @@ def select_knockout_players(tournament_id, player_ids=None):
     return True, "Players selected for knockout stage"
 
 def generate_knockout_matches(tournament_id):
-    """Generate knockout stage matches"""
+    """Generate knockout stage matches including third place playoff"""
     tournament = Tournament.query.get(tournament_id)
     if not tournament:
         return False, "Tournament not found"

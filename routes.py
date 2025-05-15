@@ -20,6 +20,38 @@ def tournament_statistics():
     tournaments = Tournament.query.order_by(Tournament.name).all()
     return render_template('tournament_statistics.html', tournaments=tournaments)
 
+@app.route('/api/tournament/<int:tournament_id>/stats')
+def tournament_stats_api(tournament_id):
+    tournament = Tournament.query.get_or_404(tournament_id)
+    
+    # Get all completed matches
+    matches = Match.query.filter_by(
+        tournament_id=tournament_id,
+        status=MatchStatus.COMPLETED
+    ).all()
+    
+    match_results = {
+        'whiteWins': sum(1 for m in matches if m.result == MatchResult.WHITE_WIN),
+        'blackWins': sum(1 for m in matches if m.result == MatchResult.BLACK_WIN),
+        'draws': sum(1 for m in matches if m.result == MatchResult.DRAW),
+        'forfeits': sum(1 for m in matches if m.result in [MatchResult.FORFEIT_WHITE, MatchResult.FORFEIT_BLACK])
+    }
+    
+    # Get player points
+    tournament_players = TournamentPlayer.query.filter_by(
+        tournament_id=tournament_id
+    ).join(Player).all()
+    
+    player_points = [
+        {'name': tp.player.name, 'points': tp.points}
+        for tp in tournament_players
+    ]
+    
+    return jsonify({
+        'matchResults': match_results,
+        'playerPoints': player_points
+    })
+
 # Error handlers
 @app.errorhandler(404)
 def page_not_found(e):

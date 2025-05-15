@@ -38,10 +38,10 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="navbar-brand d-flex align-items-center">
-    <img src="{{ url_for('static', filename='img/logo_gruppo_scacchistico.png') }}" alt="Logo Gruppo Scacchistico" style="height: 40px; margin-right: 10px;">
-    <img src="{{ url_for('static', filename='img/logo_biblioteca.png') }}" alt="Logo Biblioteca" style="height: 40px; margin-right: 20px;">
-</div>
-<div class="collapse navbar-collapse" id="navbarNav">
+                <img src="{{ url_for('static', filename='img/logo_gruppo_scacchistico.png') }}" alt="Logo Gruppo Scacchistico" style="height: 50px; margin-right: 15px;">
+                <img src="{{ url_for('static', filename='img/logo_biblioteca.png') }}" alt="Logo Biblioteca" style="height: 50px;">
+            </div>
+            <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('index') }}">Home</a>
@@ -152,7 +152,7 @@
     <footer class="footer mt-auto py-3">
         <div class="container">
             <img src="{{ url_for('static', filename='img/custom_footer.png') }}" alt="Organizations" class="img-fluid mb-3">
-            
+
             <div class="row mt-3">
                 <div class="col text-center">
                     <p class="text-muted small">© {{ now().year }} - San Marzano di S.G (TA)</p>
