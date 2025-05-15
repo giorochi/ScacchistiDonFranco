@@ -1,0 +1,139 @@
+{% extends 'layout.html' %}
+
+{% block title %}Galleria Fotografica - {{ tournament.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header card-header-secondary">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h2 class="mb-0">Galleria Fotografica</h2>
+                        <a href="{{ url_for('tournament_view', tournament_id=tournament.id) }}" class="btn btn-info">
+                            <i class="fas fa-arrow-left"></i> Torna al Torneo
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h3>{{ tournament.name }}</h3>
+                    
+                    <!-- Filtri -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <form action="{{ url_for('gallery_view', tournament_id=tournament.id) }}" method="GET" class="form-inline justify-content-center">
+                                        <div class="form-group mr-2">
+                                            <label for="category_id" class="mr-2">Categoria:</label>
+                                            <select name="category_id" id="category_id" class="form-control">
+                                                <option value="">Tutte le categorie</option>
+                                                {% for category in categories %}
+                                                <option value="{{ category.id }}" {% if selected_category_id == category.id %}selected{% endif %}>
+                                                    {{ category.name }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="form-group mr-2">
+                                            <label for="event_date" class="mr-2">Data:</label>
+                                            <select name="event_date" id="event_date" class="form-control">
+                                                <option value="">Tutte le date</option>
+                                                {% for date in event_dates %}
+                                                <option value="{{ date.strftime('%Y-%m-%d') }}" {% if selected_date and selected_date.strftime('%Y-%m-%d') == date.strftime('%Y-%m-%d') %}selected{% endif %}>
+                                                    {{ date.strftime('%d/%m/%Y') }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Filtra</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Galleria -->
+                    {% if photos %}
+                    <div class="row">
+                        {% for photo in photos %}
+                        <div class="col-md-4 mb-4">
+                            <div class="card gallery-card">
+                                <a href="{{ url_for('static', filename='uploads/photos/' + photo.filename) }}" 
+                                   data-toggle="lightbox" 
+                                   data-gallery="tournament-gallery"
+                                   data-title="{{ photo.title or 'Immagine' }}"
+                                   data-footer="{% if photo.description %}{{ photo.description }}{% endif %}{% if photo.event_date %} - {{ photo.event_date.strftime('%d/%m/%Y') }}{% endif %}">
+                                    <img src="{{ url_for('static', filename='uploads/photos/' + photo.filename) }}" 
+                                         class="card-img-top gallery-img" 
+                                         alt="{{ photo.title or 'Immagine torneo' }}">
+                                </a>
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ photo.title or 'Immagine' }}</h5>
+                                    <p class="card-text small">
+                                        {% if photo.category %}
+                                        <span class="badge badge-info">{{ photo.category.name }}</span>
+                                        {% endif %}
+                                        {% if photo.event_date %}
+                                        <span class="badge badge-secondary">{{ photo.event_date.strftime('%d/%m/%Y') }}</span>
+                                        {% endif %}
+                                    </p>
+                                    {% if photo.description %}
+                                    <p class="card-text">{{ photo.description }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        Nessuna foto disponibile{% if selected_category_id %} nella categoria selezionata{% endif %}{% if selected_date %} per la data selezionata{% endif %}.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/ekko-lightbox/5.3.0/ekko-lightbox.css" rel="stylesheet">
+<style>
+    .gallery-card {
+        transition: transform 0.3s ease;
+        height: 100%;
+    }
+    
+    .gallery-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    
+    .gallery-img {
+        height: 200px;
+        object-fit: cover;
+        cursor: pointer;
+    }
+    
+    .ekko-lightbox-nav-overlay a {
+        color: #fff;
+        text-shadow: 0 0 5px #000;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ekko-lightbox/5.3.0/ekko-lightbox.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $(document).on('click', '[data-toggle="lightbox"]', function(event) {
+            event.preventDefault();
+            $(this).ekkoLightbox({
+                alwaysShowClose: true
+            });
+        });
+    });
+</script>
+{% endblock %}
