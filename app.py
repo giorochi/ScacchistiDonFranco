@@ -24,15 +24,19 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "chess_tournament_secret_key")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
-# Database configuration - Connessione al database locale
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///chess_tournament.db")
+# Database configuration - Connessione al database Supabase tramite connection pooler
+app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres.bemaxcwnjedpxsuwezbp:scacchidonfranco@aws-0-eu-west-3.pooler.supabase.com:6543/postgres"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     'pool_pre_ping': True,
     'pool_recycle': 300,
-    'pool_timeout': 30,
+    'pool_timeout': 60,  # Timeout più lungo per connessioni remote
     'pool_size': 10,
-    'max_overflow': 5
+    'max_overflow': 15,
+    'connect_args': {
+        'connect_timeout': 10,  # Aumentato timeout di connessione
+        'application_name': 'chess_tournament_app'  # Identificazione dell'applicazione
+    }
 }
 
 # Initialize database
