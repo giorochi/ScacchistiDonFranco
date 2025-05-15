@@ -37,7 +37,11 @@
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
+            <div class="navbar-brand d-flex align-items-center">
+    <img src="{{ url_for('static', filename='img/logo_gruppo_scacchistico.png') }}" alt="Logo Gruppo Scacchistico" style="height: 40px; margin-right: 10px;">
+    <img src="{{ url_for('static', filename='img/logo_biblioteca.png') }}" alt="Logo Biblioteca" style="height: 40px; margin-right: 20px;">
+</div>
+<div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('index') }}">Home</a>
@@ -46,13 +50,13 @@
                         {% if current_user.username is defined %}
                             <!-- Admin Navigation -->
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+                                <a class="nav-link" href="{{ url_for('admin_dashboard') }}">Pannello di Controllo</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('admin_tournaments') }}">Tournaments</a>
+                                <a class="nav-link" href="{{ url_for('admin_tournaments') }}">Tornei</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('admin_players') }}">Players</a>
+                                <a class="nav-link" href="{{ url_for('admin_players') }}">Giocatori</a>
                             </li>
                         {% else %}
                             <!-- Player Navigation -->
