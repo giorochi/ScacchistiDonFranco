@@ -1,0 +1,25 @@
+<div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center mb-4">
+                                <img src="https://pixabay.com/get/g71b370d822c8fbf1a336bbb53c7d03a0abd4428db69841ef2f8f1a7bc80ee1ea67bfcb53fcd9dcfd0ec9fe522c47bd96dfd44e1028f69d9d23b9cd44a7bf8629_1280.jpg" alt="Chess Tournament" class="img-fluid rounded">
+                            </div>
+                            <h4><i class="fas fa-users"></i> Group Stage</h4>
+                            <p>Players are divided into groups for the initial round-robin tournament phase. Each player competes against all others in their group to accumulate points.</p>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center mb-4">
+                                <img src="https://pixabay.com/get/g6777961f05a30677c7238dd71570f581e87d781b84f06e3fb603bc2167a988f9f545a1e1d8484db8674ea490deb3e8a5187684930bc54da710b89d051b716c6a_1280.jpg" alt="Chess Players" class="img-fluid rounded">
+                            </div>
+                            <h4><i class="fas fa-trophy"></i> Knockout Stage</h4>
+                            <p>Top performers from the group stage advance to the knockout rounds. Matches are played in an elimination format until a champion is determined.</p>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center mb-4">
+                                <img src="https://pixabay.com/get/g1e50bf65721dbaebf8d5a669b581ab316d198ef91bd6b9e6b497edcf812bd307e410c25d8d2c4dcf7d93108c657e29d4c67548c515ab600c262419f6e8902811_1280.jpg" alt="Chess Board" class="img-fluid rounded">
+                            </div>
+                            <h4><i class="fas fa-chess-board"></i> Board Assignments</h4>
+                            <p>Each match is assigned to a specific chessboard. Players can check their upcoming matches and board assignments through their personal dashboard.</p>
+                        </div>
+                    </div>
+                </div>
