@@ -1278,18 +1278,13 @@ def admin_chessboard_delete(board_id):
 # Initialization function
 @app.route('/setup', methods=['GET', 'POST'])
 def setup():
-    # Check if admin user exists
-    admin = Admin.query.first()
-    
-    if admin:
-        flash('Setup già completato', 'info')
-        return redirect(url_for('index'))
-    
+    # Sempre permetti la creazione di un nuovo admin per il tuo caso specifico
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
         email = request.form.get('email')
         
+        # Crea un nuovo admin
         admin = Admin()
         admin.username = username
         admin.email = email
