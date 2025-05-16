@@ -1,30 +1,30 @@
 {% extends "layout.html" %}
 
-{% block title %}Chess Tournament Management System{% endblock %}
+{% block title %}Sistema di Gestione Tornei di Scacchi{% endblock %}
 
 {% block content %}
 <div class="hero">
     <div class="container">
-        <h1>Chess Tournament Management System</h1>
-        <p>A complete solution for organizing and managing chess tournaments with group stages and knockout rounds.</p>
+        <h1>Sistema di Gestione Tornei di Scacchi</h1>
+        <p>Una soluzione completa per organizzare e gestire tornei di scacchi con fasi a gironi e ad eliminazione diretta.</p>
         {% if not current_user.is_authenticated %}
             <div class="mt-4">
                 <a href="{{ url_for('login') }}" class="btn btn-light btn-lg me-2">
-                    <i class="fas fa-sign-in-alt"></i> Player Login
+                    <i class="fas fa-sign-in-alt"></i> Accesso Giocatore
                 </a>
                 <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg">
-                    <i class="fas fa-user-shield"></i> Admin Login
+                    <i class="fas fa-user-shield"></i> Accesso Admin
                 </a>
             </div>
         {% else %}
             <div class="mt-4">
                 {% if current_user.username is defined %}
                     <a href="{{ url_for('admin_dashboard') }}" class="btn btn-light btn-lg">
-                        <i class="fas fa-chess-board"></i> Go to Admin Dashboard
+                        <i class="fas fa-chess-board"></i> Vai alla Dashboard Admin
                     </a>
                 {% else %}
                     <a href="{{ url_for('player_dashboard') }}" class="btn btn-light btn-lg">
-                        <i class="fas fa-chess"></i> Go to Player Dashboard
+                        <i class="fas fa-chess"></i> Vai alla Dashboard Giocatore
                     </a>
                 {% endif %}
             </div>
@@ -37,7 +37,7 @@
         <div class="col-md-8">
             <div class="card mb-4">
                 <div class="card-header">
-                    <h2>Recent Tournaments</h2>
+                    <h2>Tornei Recenti</h2>
                 </div>
                 <div class="card-body">
                     {% if tournaments %}
@@ -47,7 +47,17 @@
                                     <div class="d-flex w-100 justify-content-between">
                                         <h5 class="mb-1">{{ tournament.name }}</h5>
                                         <span class="tournament-status status-{{ tournament.status }}">
-                                            {{ tournament.status|replace('_', ' ')|title }}
+                                            {% if tournament.status == 'draft' %}
+                                                Bozza
+                                            {% elif tournament.status == 'group_stage' %}
+                                                Fase a Gironi
+                                            {% elif tournament.status == 'knockout_stage' %}
+                                                Fase ad Eliminazione
+                                            {% elif tournament.status == 'completed' %}
+                                                Completato
+                                            {% else %}
+                                                {{ tournament.status|replace('_', ' ')|title }}
+                                            {% endif %}
                                         </span>
                                     </div>
                                     <p class="mb-1">{{ tournament.description|truncate(100) }}</p>
@@ -67,7 +77,7 @@
                         </div>
                     {% else %}
                         <div class="alert alert-info">
-                            No tournaments available at the moment.
+                            Nessun torneo disponibile al momento.
                         </div>
                     {% endif %}
                 </div>
@@ -77,15 +87,15 @@
         <div class="col-md-4">
             <div class="card mb-4">
                 <div class="card-header">
-                    <h2>Player Access</h2>
+                    <h2>Accesso Giocatore</h2>
                 </div>
                 <div class="card-body">
-                    <p>If you are a registered player, you can access your tournament information using your unique access code.</p>
+                    <p>Se sei un giocatore registrato, puoi accedere alle informazioni del tuo torneo utilizzando il tuo codice di accesso.</p>
                     <form action="{{ url_for('login') }}" method="post">
                         <div class="mb-3">
-                            <label for="accessCode" class="form-label">Your Access Code</label>
+                            <label for="accessCode" class="form-label">Il Tuo Codice di Accesso</label>
                             <div class="input-group">
-                                <input type="text" class="form-control" id="accessCode" name="access_code" placeholder="Enter your access code" required>
+                                <input type="text" class="form-control" id="accessCode" name="access_code" placeholder="Inserisci il tuo codice" required>
                                 <button type="submit" class="btn btn-primary">
                                     <i class="fas fa-arrow-right"></i>
                                 </button>
@@ -97,15 +107,15 @@
             
             <div class="card">
                 <div class="card-header card-header-secondary">
-                    <h2>About Our Organization</h2>
+                    <h2>La Nostra Organizzazione</h2>
                 </div>
                 <div class="card-body">
                     <div class="logo-container">
                         <img src="{{ url_for('static', filename='img/logo_gruppo_scacchistico.png') }}" alt="Logo Gruppo Scacchistico" style="height: 60px; margin-right: 15px;">
                         <img src="{{ url_for('static', filename='img/logo_biblioteca.png') }}" alt="Logo Biblioteca" style="height: 60px;">
                     </div>
-                    <p>The <strong>Gruppo Scacchistico Parrocchiale "don Franco Venneri"</strong> organizes chess tournaments and activities for players of all levels.</p>
-                    <p>The <strong>Biblioteca Parrocchiale "San Carlo Borromeo"</strong> supports our events and provides resources for chess enthusiasts.</p>
+                    <p>Il <strong>Gruppo Scacchistico Parrocchiale "don Franco Venneri"</strong> organizza tornei di scacchi e attività per giocatori di tutti i livelli.</p>
+                    <p>La <strong>Biblioteca Parrocchiale "San Carlo Borromeo"</strong> supporta i nostri eventi e fornisce risorse per gli appassionati di scacchi.</p>
                 </div>
             </div>
         </div>
