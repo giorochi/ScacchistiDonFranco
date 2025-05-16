@@ -44,6 +44,7 @@
             <!-- Admin Login -->
             <div class="tab-pane fade" id="admin" role="tabpanel" aria-labelledby="admin-tab">
                 <form method="post" action="{{ url_for('login') }}">
+                    <input type="hidden" name="admin_login" value="1">
                     <div class="mb-3">
                         <label for="username" class="form-label">Username</label>
                         <input type="text" class="form-control" id="username" name="username" required>
