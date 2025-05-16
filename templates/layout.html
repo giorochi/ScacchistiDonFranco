@@ -119,32 +119,13 @@
 
     {% block scripts %}{% endblock %}
 
-    <!-- Template helper for current year in footer -->
+    <!-- Nessun template helper necessario -->
     {% macro now(format) %}
         {%- if format == 'year' -%}
-            {{ 2023 }}
+            {{ 2025 }}
         {%- else -%}
             {{ format }}
         {%- endif -%}
     {% endmacro %}
-
-    <!-- Footer -->
-    <footer class="footer mt-auto py-3">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="logo-container">
-                        <img src="{{ url_for('static', filename='img/logo_gruppo_scacchistico.png') }}" alt="Logo Gruppo Scacchistico" style="height: 60px; margin-right: 15px;">
-                        <img src="{{ url_for('static', filename='img/logo_biblioteca.png') }}" alt="Logo Biblioteca" style="height: 60px;">
-                    </div>
-                </div>
-                <div class="col-md-6 text-md-end mt-3 mt-md-0">
-                    <p>© 2025 Sistema di Gestione Tornei di Scacchi ideato e realizzato da Giovanni Rochira</p>
-                    <p>Gruppo Scacchistico Parrocchiale "don Franco Venneri"<br>
-                       Biblioteca Parrocchiale "San Carlo Borromeo"</p>
-                </div>
-            </div>
-        </div>
-    </footer>
 </body>
 </html>
