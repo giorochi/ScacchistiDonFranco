@@ -1284,17 +1284,27 @@ def setup():
         password = request.form.get('password')
         email = request.form.get('email')
         
-        # Crea un nuovo admin
-        admin = Admin()
-        admin.username = username
-        admin.email = email
-        admin.set_password(password)
+        # Controlla se l'username esiste già
+        existing_admin = Admin.query.filter_by(username=username).first()
+        if existing_admin:
+            flash(f'Lo username "{username}" è già in uso. Scegli un altro username.', 'danger')
+            return render_template('setup.html')
         
-        db.session.add(admin)
-        db.session.commit()
-        
-        flash('Setup completato con successo. Ora puoi effettuare il login.', 'success')
-        return redirect(url_for('login'))
+        try:
+            # Crea un nuovo admin
+            admin = Admin()
+            admin.username = username
+            admin.email = email
+            admin.set_password(password)
+            
+            db.session.add(admin)
+            db.session.commit()
+            
+            flash('Setup completato con successo. Ora puoi effettuare il login.', 'success')
+            return redirect(url_for('login'))
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            flash(f'Errore durante la creazione dell\'account: {str(e)}', 'danger')
     
     return render_template('setup.html')
 
