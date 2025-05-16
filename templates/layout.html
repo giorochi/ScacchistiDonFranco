@@ -38,8 +38,7 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="navbar-brand d-flex align-items-center">
-                <img src="{{ url_for('static', filename='img/logo_gruppo_scacchistico.png') }}" alt="Logo Gruppo Scacchistico" style="height: 50px; margin-right: 15px;">
-                <img src="{{ url_for('static', filename='img/logo_biblioteca.png') }}" alt="Logo Biblioteca" style="height: 50px;">
+                <!-- Loghi eliminati dalla navbar per essere mostrati solo nel footer -->
             </div>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
@@ -51,17 +50,10 @@
                             <i class="fas fa-chart-bar"></i> Statistiche
                         </a>
                     </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="galleryDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">
                             <i class="fas fa-images"></i> Galleria
                         </a>
-                        <div class="dropdown-menu" aria-labelledby="galleryDropdown">
-                            {% for tournament in get_tournaments() %}
-                            <a class="dropdown-item" href="{{ url_for('gallery_view', tournament_id=tournament.id) }}">
-                                {{ tournament.name }}
-                            </a>
-                            {% endfor %}
-                        </div>
                     </li>
                     {% if current_user.is_authenticated %}
                         {% if current_user.username is defined %}
